@@ -36,6 +36,7 @@
 
 #define mulArb(a1,a2,a3,a4, rb) \
 	MOVQ a1, DX \
+	MOVQ $0, R13 \
 	MULXQ 0+rb, R8, R9 \
 	MULXQ 8+rb, AX, R10 \
 	ADDQ AX, R9 \
@@ -44,69 +45,53 @@
 	MULXQ 24+rb, AX, R12 \
 	ADCQ AX, R11 \
 	ADCQ $0, R12 \
-	MOVQ $0, R13 \
 	ADCQ $0, R13 \
 	\
 	MOVQ a2, DX \
+	MOVQ $0, R14 \
 	MULXQ 0+rb, AX, BX \
 	ADDQ AX, R9 \
 	ADCQ BX, R10 \
-	ADCQ $0, R11 \
-	ADCQ $0, R12 \
+	MULXQ 16+rb, AX, BX \
+	ADCQ AX, R11 \
+	ADCQ BX, R12 \
 	ADCQ $0, R13 \
 	MULXQ 8+rb, AX, BX \
 	ADDQ AX, R10 \
 	ADCQ BX, R11 \
-	ADCQ $0, R12 \
-	ADCQ $0, R13 \
-	MULXQ 16+rb, AX, BX \
-	ADDQ AX, R11 \
-	ADCQ BX, R12 \
-	ADCQ $0, R13 \
 	MULXQ 24+rb, AX, BX \
-	ADDQ AX, R12 \
+	ADCQ AX, R12 \
 	ADCQ BX, R13 \
-	MOVQ $0, R14 \
 	ADCQ $0, R14 \
 	\
 	MOVQ a3, DX \
+	MOVQ $0, R15 \
 	MULXQ 0+rb, AX, BX \
 	ADDQ AX, R10 \
 	ADCQ BX, R11 \
-	ADCQ $0, R12 \
-	ADCQ $0, R13 \
+	MULXQ 16+rb, AX, BX \
+	ADCQ AX, R12 \
+	ADCQ BX, R13 \
 	ADCQ $0, R14 \
 	MULXQ 8+rb, AX, BX \
 	ADDQ AX, R11 \
 	ADCQ BX, R12 \
-	ADCQ $0, R13 \
-	ADCQ $0, R14 \
-	MULXQ 16+rb, AX, BX \
-	ADDQ AX, R12 \
-	ADCQ BX, R13 \
-	ADCQ $0, R14 \
 	MULXQ 24+rb, AX, BX \
-	ADDQ AX, R13 \
+	ADCQ AX, R13 \
 	ADCQ BX, R14 \
-	MOVQ $0, R15 \
 	ADCQ $0, R15 \
 	\
 	MOVQ a4, DX \
 	MULXQ 0+rb, AX, BX \
 	ADDQ AX, R11 \
 	ADCQ BX, R12 \
-	ADCQ $0, R13 \
-	ADCQ $0, R14 \
+	MULXQ 16+rb, AX, BX \
+	ADCQ AX, R13 \
+	ADCQ BX, R14 \
 	ADCQ $0, R15 \
 	MULXQ 8+rb, AX, BX \
 	ADDQ AX, R12 \
 	ADCQ BX, R13 \
-	ADCQ $0, R14 \
-	ADCQ $0, R15 \
-	MULXQ 16+rb, AX, BX \
-	ADDQ AX, R13 \
-	ADCQ BX, R14 \
-	ADCQ $0, R15 \
 	MULXQ 24+rb, AX, BX \
-	ADDQ AX, R14 \
+	ADCQ AX, R14 \
 	ADCQ BX, R15
