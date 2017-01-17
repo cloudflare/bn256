@@ -54,10 +54,8 @@ func gfpNeg(c, a *gfP)
 //go:noescape
 func gfpAdd(c, a, b *gfP)
 
-func gfpSub(c, a, b *gfP) {
-	gfpNeg(c, b)
-	gfpAdd(c, a, c)
-}
+//go:noescape
+func gfpSub(c, a, b *gfP)
 
 //go:noescape
 func gfpMul(c, a, b *gfP)

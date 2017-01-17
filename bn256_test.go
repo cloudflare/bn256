@@ -8,8 +8,54 @@ import (
 	"math/big"
 )
 
+func TestGFPAdd(t *testing.T) {
+	for i := 0; i < 10000; i++ {
+		A, _ := rand.Int(rand.Reader, p)
+		B, _ := rand.Int(rand.Reader, p)
+		AB, BB := A.Bits(), B.Bits()
+
+		a := &gfP{uint64(AB[0]), uint64(AB[1]), uint64(AB[2]), uint64(AB[3])}
+		b := &gfP{uint64(BB[0]), uint64(BB[1]), uint64(BB[2]), uint64(BB[3])}
+		c := &gfP{}
+
+		gfpAdd(c, a, b)
+		C := new(big.Int).Add(A, B)
+		C.Mod(C, p)
+		CB := C.Bits()
+
+		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
+			t.Logf("%x", CB)
+			t.Log(c)
+			t.Fatal()
+		}
+	}
+}
+
+func TestGFPSub(t *testing.T) {
+	for i := 0; i < 10000; i++ {
+		A, _ := rand.Int(rand.Reader, p)
+		B, _ := rand.Int(rand.Reader, p)
+		AB, BB := A.Bits(), B.Bits()
+
+		a := &gfP{uint64(AB[0]), uint64(AB[1]), uint64(AB[2]), uint64(AB[3])}
+		b := &gfP{uint64(BB[0]), uint64(BB[1]), uint64(BB[2]), uint64(BB[3])}
+		c := &gfP{}
+
+		gfpSub(c, a, b)
+		C := new(big.Int).Sub(A, B)
+		C.Mod(C, p)
+		CB := C.Bits()
+
+		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
+			t.Logf("%x", CB)
+			t.Log(c)
+			t.Fatal()
+		}
+	}
+}
+
 func TestGFPMul(t *testing.T) {
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 10000; i++ {
 		A, _ := rand.Int(rand.Reader, p)
 		B, _ := rand.Int(rand.Reader, p)
 		A.Lsh(A, 256).Mod(A, p)
@@ -27,29 +73,6 @@ func TestGFPMul(t *testing.T) {
 		c := &gfP{}
 
 		gfpMul(c, a, b)
-
-		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
-			t.Logf("%x", CB)
-			t.Log(c)
-			t.Fatal()
-		}
-	}
-}
-
-func TestGFPAdd(t *testing.T) {
-	for i := 0; i < 100000; i++ {
-		A, _ := rand.Int(rand.Reader, p)
-		B, _ := rand.Int(rand.Reader, p)
-		AB, BB := A.Bits(), B.Bits()
-
-		a := &gfP{uint64(AB[0]), uint64(AB[1]), uint64(AB[2]), uint64(AB[3])}
-		b := &gfP{uint64(BB[0]), uint64(BB[1]), uint64(BB[2]), uint64(BB[3])}
-		c := &gfP{}
-
-		gfpAdd(c, a, b)
-		C := new(big.Int).Add(A, B)
-		C.Mod(C, p)
-		CB := C.Bits()
 
 		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
 			t.Logf("%x", CB)
