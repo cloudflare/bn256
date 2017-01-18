@@ -93,30 +93,21 @@ func (e *G1) Set(a *G1) *G1 {
 }
 
 // Marshal converts n to a byte slice.
-func (n *G1) Marshal() []byte {
+func (e *G1) Marshal() []byte {
 	// Each value is a 256-bit number.
 	const numBytes = 256 / 8
 
-	n.p.MakeAffine()
+	e.p.MakeAffine()
 	ret := make([]byte, numBytes*2)
-	if n.p.IsInfinity() {
+	if e.p.IsInfinity() {
 		return ret
 	}
+	temp := &gfP{}
 
-	x, y := &gfP{}, &gfP{}
-	montDecode(x, &n.p.x)
-	montDecode(y, &n.p.y)
-
-	for w := uint(0); w < 4; w++ {
-		for b := uint(0); b < 8; b++ {
-			ret[8*w+b] = byte(x[3-w] >> (56 - 8*b))
-		}
-	}
-	for w := uint(0); w < 4; w++ {
-		for b := uint(0); b < 8; b++ {
-			ret[8*w+b+32] = byte(y[3-w] >> (56 - 8*b))
-		}
-	}
+	montDecode(temp, &e.p.x)
+	temp.Marshal(ret)
+	montDecode(temp, &e.p.y)
+	temp.Marshal(ret[numBytes:])
 
 	return ret
 }
@@ -136,16 +127,8 @@ func (e *G1) Unmarshal(m []byte) ([]byte, error) {
 		e.p.x, e.p.y = gfP{0}, gfP{0}
 	}
 
-	for w := uint(0); w < 4; w++ {
-		for b := uint(0); b < 8; b++ {
-			e.p.x[3-w] += uint64(m[8*w+b]) << (56 - 8*b)
-		}
-	}
-	for w := uint(0); w < 4; w++ {
-		for b := uint(0); b < 8; b++ {
-			e.p.y[3-w] += uint64(m[8*w+b+32]) << (56 - 8*b)
-		}
-	}
+	e.p.x.Unmarshal(m)
+	e.p.y.Unmarshal(m[numBytes:])
 	montEncode(&e.p.x, &e.p.x)
 	montEncode(&e.p.y, &e.p.y)
 
@@ -183,8 +166,8 @@ func RandomG2(r io.Reader) (*big.Int, *G2, error) {
 	return k, new(G2).ScalarBaseMult(k), nil
 }
 
-func (g *G2) String() string {
-	return "bn256.G2" + g.p.String()
+func (e *G2) String() string {
+	return "bn256.G2" + e.p.String()
 }
 
 // ScalarBaseMult sets e to g*k where g is the generator of the group and then returns out.
@@ -232,61 +215,65 @@ func (e *G2) Set(a *G2) *G2 {
 	return e
 }
 
-// // Marshal converts n into a byte slice.
-// func (n *G2) Marshal() []byte {
-// 	// Each value is a 256-bit number.
-// 	const numBytes = 256 / 8
-//
-// 	n.p.MakeAffine(nil)
-// 	ret := make([]byte, numBytes*4)
-// 	if n.p.IsInfinity() {
-// 		return ret
-// 	}
-//
-// 	xxBytes := new(big.Int).Mod(n.p.x.x, p).Bytes()
-// 	xyBytes := new(big.Int).Mod(n.p.x.y, p).Bytes()
-// 	yxBytes := new(big.Int).Mod(n.p.y.x, p).Bytes()
-// 	yyBytes := new(big.Int).Mod(n.p.y.y, p).Bytes()
-//
-// 	copy(ret[1*numBytes-len(xxBytes):], xxBytes)
-// 	copy(ret[2*numBytes-len(xyBytes):], xyBytes)
-// 	copy(ret[3*numBytes-len(yxBytes):], yxBytes)
-// 	copy(ret[4*numBytes-len(yyBytes):], yyBytes)
-//
-// 	return ret
-// }
-//
-// // Unmarshal sets e to the result of converting the output of Marshal back into a group element and then returns e.
-// func (e *G2) Unmarshal(m []byte) ([]byte, error) {
-// 	// Each value is a 256-bit number.
-// 	const numBytes = 256 / 8
-//
-// 	if len(m) < 4*numBytes {
-// 		return nil, errors.New("bn256: not enough data")
-// 	}
-//
-// 	if e.p == nil {
-// 		e.p = newTwistPoint(nil)
-// 	}
-//
-// 	e.p.x.x.SetBytes(m[0*numBytes : 1*numBytes])
-// 	e.p.x.y.SetBytes(m[1*numBytes : 2*numBytes])
-// 	e.p.y.x.SetBytes(m[2*numBytes : 3*numBytes])
-// 	e.p.y.y.SetBytes(m[3*numBytes : 4*numBytes])
-//
-// 	if e.p.x.IsZero() && e.p.y.IsZero() {
-// 		// This is the point at infinity.
-// 		e.p.y.SetOne()
-// 		e.p.z.SetZero()
-// 		e.p.t.SetZero()
-// 	} else {
-// 		e.p.z.SetOne()
-// 		e.p.t.SetOne()
-//
-// 		if !e.p.IsOnCurve() {
-// 			return nil, errors.New("bn256: malformed point")
-// 		}
-// 	}
-//
-// 	return m[4*numBytes:], nil
-// }
+// Marshal converts n into a byte slice.
+func (e *G2) Marshal() []byte {
+	// Each value is a 256-bit number.
+	const numBytes = 256 / 8
+
+	e.p.MakeAffine()
+	ret := make([]byte, numBytes*4)
+	if e.p.IsInfinity() {
+		return ret
+	}
+	temp := &gfP{}
+
+	montDecode(temp, &e.p.x.x)
+	temp.Marshal(ret)
+	montDecode(temp, &e.p.x.y)
+	temp.Marshal(ret[numBytes:])
+	montDecode(temp, &e.p.y.x)
+	temp.Marshal(ret[2*numBytes:])
+	montDecode(temp, &e.p.y.y)
+	temp.Marshal(ret[3*numBytes:])
+
+	return ret
+}
+
+// Unmarshal sets e to the result of converting the output of Marshal back into a group element and then returns e.
+func (e *G2) Unmarshal(m []byte) ([]byte, error) {
+	// Each value is a 256-bit number.
+	const numBytes = 256 / 8
+
+	if len(m) < 4*numBytes {
+		return nil, errors.New("bn256: not enough data")
+	}
+
+	if e.p == nil {
+		e.p = &twistPoint{}
+	}
+
+	e.p.x.x.Unmarshal(m)
+	e.p.x.y.Unmarshal(m[numBytes:])
+	e.p.y.x.Unmarshal(m[2*numBytes:])
+	e.p.y.y.Unmarshal(m[3*numBytes:])
+	montEncode(&e.p.x.x, &e.p.x.x)
+	montEncode(&e.p.x.y, &e.p.x.y)
+	montEncode(&e.p.y.x, &e.p.y.x)
+	montEncode(&e.p.y.y, &e.p.y.y)
+
+	if e.p.x.IsZero() && e.p.y.IsZero() {
+		// This is the point at infinity.
+		e.p.y.SetOne()
+		e.p.z.SetZero()
+		e.p.t.SetZero()
+	} else {
+		e.p.z.SetOne()
+		e.p.t.SetOne()
+
+		if !e.p.IsOnCurve() {
+			return nil, errors.New("bn256: malformed point")
+		}
+	}
+
+	return m[4*numBytes:], nil
+}

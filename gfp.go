@@ -46,6 +46,22 @@ func (e *gfP) Invert(f *gfP) {
 	e.Set(sum)
 }
 
+func (e *gfP) Marshal(out []byte) {
+	for w := uint(0); w < 4; w++ {
+		for b := uint(0); b < 8; b++ {
+			out[8*w+b] = byte(e[3-w] >> (56 - 8*b))
+		}
+	}
+}
+
+func (e *gfP) Unmarshal(in []byte) {
+	for w := uint(0); w < 4; w++ {
+		for b := uint(0); b < 8; b++ {
+			e[3-w] += uint64(in[8*w+b]) << (56 - 8*b)
+		}
+	}
+}
+
 func montEncode(c, a *gfP) { gfpMul(c, a, r2) }
 func montDecode(c, a *gfP) { gfpMul(c, a, &gfP{1}) }
 

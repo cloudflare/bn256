@@ -134,23 +134,23 @@ func TestOrderG2(t *testing.T) {
 	}
 }
 
-// func TestG2Marshal(t *testing.T) {
-// 	g, g2 := new(G2).ScalarBaseMult(new(big.Int).SetInt64(1)), new(G2)
-// 	form := g.Marshal()
-// 	rest, err := new(G2).Unmarshal(form)
-// 	if err != nil || len(rest) > 0 {
-// 		t.Fatalf("failed to unmarshal: %v", err)
-// 	}
-//
-// 	g.ScalarBaseMult(Order)
-// 	form = g.Marshal()
-// 	rest, err = g2.Unmarshal(form)
-// 	if err != nil || len(rest) > 0 {
-// 		t.Fatalf("failed to unmarshal ∞: %v", err)
-// 	} else if !g2.p.IsInfinity() {
-// 		t.Fatalf("∞ unmarshaled incorrectly")
-// 	}
-// }
+func TestG2Marshal(t *testing.T) {
+	g, g2 := new(G2).ScalarBaseMult(new(big.Int).SetInt64(1)), new(G2)
+	form := g.Marshal()
+	rest, err := new(G2).Unmarshal(form)
+	if err != nil || len(rest) > 0 {
+		t.Fatalf("failed to unmarshal: %v", err)
+	}
+
+	g.ScalarBaseMult(Order)
+	form = g.Marshal()
+	rest, err = g2.Unmarshal(form)
+	if err != nil || len(rest) > 0 {
+		t.Fatalf("failed to unmarshal ∞: %v", err)
+	} else if !g2.p.IsInfinity() {
+		t.Fatalf("∞ unmarshaled incorrectly")
+	}
+}
 
 func TestG2Identity(t *testing.T) {
 	g := new(G2).ScalarBaseMult(new(big.Int).SetInt64(0))
