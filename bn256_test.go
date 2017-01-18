@@ -21,10 +21,9 @@ func TestGFPAdd(t *testing.T) {
 		gfpAdd(c, a, b)
 		C := new(big.Int).Add(A, B)
 		C.Mod(C, p)
-		CB := C.Bits()
 
-		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
-			t.Logf("%x", CB)
+		if fmt.Sprintf("%64.64x", C) != fmt.Sprint(c) {
+			t.Logf("%64.64x", C)
 			t.Log(c)
 			t.Fatal()
 		}
@@ -44,10 +43,9 @@ func TestGFPSub(t *testing.T) {
 		gfpSub(c, a, b)
 		C := new(big.Int).Sub(A, B)
 		C.Mod(C, p)
-		CB := C.Bits()
 
-		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
-			t.Logf("%x", CB)
+		if fmt.Sprintf("%64.64x", C) != fmt.Sprint(c) {
+			t.Logf("%64.64x", C)
 			t.Log(c)
 			t.Fatal()
 		}
@@ -74,51 +72,13 @@ func TestGFPMul(t *testing.T) {
 
 		gfpMul(c, a, b)
 
-		if fmt.Sprintf("%x", CB) != fmt.Sprint(c) {
-			t.Logf("%x", CB)
+		if fmt.Sprintf("%64.64x", C) != fmt.Sprint(c) {
+			t.Logf("%64.64x", CB)
 			t.Log(c)
 			t.Fatal()
 		}
 	}
 }
-
-// func TestCurveImpl(t *testing.T) {
-// 	g := &curvePoint{}
-// 	g.Set(curveGen)
-//
-// 	x := pool.Get().SetInt64(32498273234)
-// 	X := &curvePoint{}
-// 	X.Mul(g, x, pool)
-//
-// 	y := pool.Get().SetInt64(98732423523)
-// 	Y := &curvePoint{}
-// 	Y.Mul(g, y, pool)
-//
-// 	s1 := &curvePoint{}
-// 	s1.Mul(X, y, pool)
-// 	s1.MakeAffine(pool)
-//
-// 	s2 := &curvePoint{}
-// 	s2.Mul(Y, x, pool)
-// 	s2.MakeAffine(pool)
-//
-// 	if s1.x.Cmp(s2.x) != 0 ||
-// 		s2.x.Cmp(s1.x) != 0 {
-// 		t.Errorf("DH points don't match: (%s, %s) (%s, %s)", s1.x, s1.y, s2.x, s2.y)
-// 	}
-//
-// 	pool.Put(x)
-// 	X.Put(pool)
-// 	pool.Put(y)
-// 	Y.Put(pool)
-// 	s1.Put(pool)
-// 	s2.Put(pool)
-// 	g.Put(pool)
-//
-// 	if c := pool.Count(); c > 0 {
-// 		t.Errorf("Pool count non-zero: %d\n", c)
-// 	}
-// }
 
 func TestOrderG1(t *testing.T) {
 	g := new(G1).ScalarBaseMult(Order)
@@ -159,11 +119,60 @@ func TestG1Identity(t *testing.T) {
 	}
 }
 
+func TestOrderG2(t *testing.T) {
+	g := new(G2).ScalarBaseMult(Order)
+	if !g.p.IsInfinity() {
+		t.Error("G2 has incorrect order")
+	}
+
+	one := new(G2).ScalarBaseMult(new(big.Int).SetInt64(1))
+	g.Add(g, one)
+	g.p.MakeAffine()
+
+	if *g.p != *twistGen {
+		t.Errorf("1+0 != 1 in G2")
+	}
+}
+
+// func TestG2Marshal(t *testing.T) {
+// 	g, g2 := new(G2).ScalarBaseMult(new(big.Int).SetInt64(1)), new(G2)
+// 	form := g.Marshal()
+// 	rest, err := new(G2).Unmarshal(form)
+// 	if err != nil || len(rest) > 0 {
+// 		t.Fatalf("failed to unmarshal: %v", err)
+// 	}
+//
+// 	g.ScalarBaseMult(Order)
+// 	form = g.Marshal()
+// 	rest, err = g2.Unmarshal(form)
+// 	if err != nil || len(rest) > 0 {
+// 		t.Fatalf("failed to unmarshal ∞: %v", err)
+// 	} else if !g2.p.IsInfinity() {
+// 		t.Fatalf("∞ unmarshaled incorrectly")
+// 	}
+// }
+
+func TestG2Identity(t *testing.T) {
+	g := new(G2).ScalarBaseMult(new(big.Int).SetInt64(0))
+	if !g.p.IsInfinity() {
+		t.Error("failure")
+	}
+}
+
 func BenchmarkG1(b *testing.B) {
 	x, _ := rand.Int(rand.Reader, Order)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		new(G1).ScalarBaseMult(x)
+	}
+}
+
+func BenchmarkG2(b *testing.B) {
+	x, _ := rand.Int(rand.Reader, Order)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		new(G2).ScalarBaseMult(x)
 	}
 }

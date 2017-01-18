@@ -166,3 +166,127 @@ func (e *G1) Unmarshal(m []byte) ([]byte, error) {
 
 	return m[2*numBytes:], nil
 }
+
+// G2 is an abstract cyclic group. The zero value is suitable for use as the output of an operation, but cannot be used
+// as an input.
+type G2 struct {
+	p *twistPoint
+}
+
+// RandomG2 returns x and g₂ˣ where x is a random, non-zero number read from r.
+func RandomG2(r io.Reader) (*big.Int, *G2, error) {
+	k, err := randomK(r)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return k, new(G2).ScalarBaseMult(k), nil
+}
+
+func (g *G2) String() string {
+	return "bn256.G2" + g.p.String()
+}
+
+// ScalarBaseMult sets e to g*k where g is the generator of the group and then returns out.
+func (e *G2) ScalarBaseMult(k *big.Int) *G2 {
+	if e.p == nil {
+		e.p = &twistPoint{}
+	}
+	e.p.Mul(twistGen, k)
+	return e
+}
+
+// ScalarMult sets e to a*k and then returns e.
+func (e *G2) ScalarMult(a *G2, k *big.Int) *G2 {
+	if e.p == nil {
+		e.p = &twistPoint{}
+	}
+	e.p.Mul(a.p, k)
+	return e
+}
+
+// Add sets e to a+b and then returns e.
+func (e *G2) Add(a, b *G2) *G2 {
+	if e.p == nil {
+		e.p = &twistPoint{}
+	}
+	e.p.Add(a.p, b.p)
+	return e
+}
+
+// Neg sets e to -a and then returns e.
+func (e *G2) Neg(a *G2) *G2 {
+	if e.p == nil {
+		e.p = &twistPoint{}
+	}
+	e.p.Neg(a.p)
+	return e
+}
+
+// Set sets e to a and then returns e.
+func (e *G2) Set(a *G2) *G2 {
+	if e.p == nil {
+		e.p = &twistPoint{}
+	}
+	e.p.Set(a.p)
+	return e
+}
+
+// // Marshal converts n into a byte slice.
+// func (n *G2) Marshal() []byte {
+// 	// Each value is a 256-bit number.
+// 	const numBytes = 256 / 8
+//
+// 	n.p.MakeAffine(nil)
+// 	ret := make([]byte, numBytes*4)
+// 	if n.p.IsInfinity() {
+// 		return ret
+// 	}
+//
+// 	xxBytes := new(big.Int).Mod(n.p.x.x, p).Bytes()
+// 	xyBytes := new(big.Int).Mod(n.p.x.y, p).Bytes()
+// 	yxBytes := new(big.Int).Mod(n.p.y.x, p).Bytes()
+// 	yyBytes := new(big.Int).Mod(n.p.y.y, p).Bytes()
+//
+// 	copy(ret[1*numBytes-len(xxBytes):], xxBytes)
+// 	copy(ret[2*numBytes-len(xyBytes):], xyBytes)
+// 	copy(ret[3*numBytes-len(yxBytes):], yxBytes)
+// 	copy(ret[4*numBytes-len(yyBytes):], yyBytes)
+//
+// 	return ret
+// }
+//
+// // Unmarshal sets e to the result of converting the output of Marshal back into a group element and then returns e.
+// func (e *G2) Unmarshal(m []byte) ([]byte, error) {
+// 	// Each value is a 256-bit number.
+// 	const numBytes = 256 / 8
+//
+// 	if len(m) < 4*numBytes {
+// 		return nil, errors.New("bn256: not enough data")
+// 	}
+//
+// 	if e.p == nil {
+// 		e.p = newTwistPoint(nil)
+// 	}
+//
+// 	e.p.x.x.SetBytes(m[0*numBytes : 1*numBytes])
+// 	e.p.x.y.SetBytes(m[1*numBytes : 2*numBytes])
+// 	e.p.y.x.SetBytes(m[2*numBytes : 3*numBytes])
+// 	e.p.y.y.SetBytes(m[3*numBytes : 4*numBytes])
+//
+// 	if e.p.x.IsZero() && e.p.y.IsZero() {
+// 		// This is the point at infinity.
+// 		e.p.y.SetOne()
+// 		e.p.z.SetZero()
+// 		e.p.t.SetZero()
+// 	} else {
+// 		e.p.z.SetOne()
+// 		e.p.t.SetOne()
+//
+// 		if !e.p.IsOnCurve() {
+// 			return nil, errors.New("bn256: malformed point")
+// 		}
+// 	}
+//
+// 	return m[4*numBytes:], nil
+// }
