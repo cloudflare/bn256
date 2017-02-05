@@ -299,6 +299,12 @@ func Pair(g1 *G1, g2 *G2) *GT {
 	return &GT{optimalAte(g2.p, g1.p)}
 }
 
+// Miller applies Miller's algorithm, which is a bilinear function from the source groups to F_p^12.
+// Miller(g1, g2).Finalize() is equivalent to Pair(g1, g2).
+func Miller(g1 *G1, g2 *G2) *GT {
+	return &GT{miller(g2.p, g1.p)}
+}
+
 func (g *GT) String() string {
 	return "bn256.GT" + g.p.String()
 }
@@ -345,6 +351,13 @@ func (e *GT) Set(a *GT) *GT {
 		e.p = &gfP12{}
 	}
 	e.p.Set(a.p)
+	return e
+}
+
+// Finalize is a linear function from F_p^12 to GT.
+func (e *GT) Finalize() *GT {
+	ret := finalExponentiation(e.p)
+	e.p.Set(ret)
 	return e
 }
 
