@@ -294,6 +294,11 @@ func RandomGT(r io.Reader) (*big.Int, *GT, error) {
 	return k, new(GT).ScalarBaseMult(k), nil
 }
 
+// Pair calculates an Optimal Ate pairing.
+func Pair(g1 *G1, g2 *G2) *GT {
+	return &GT{optimalAte(g2.p, g1.p)}
+}
+
 func (g *GT) String() string {
 	return "bn256.GT" + g.p.String()
 }

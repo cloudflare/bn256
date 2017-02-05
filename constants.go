@@ -9,6 +9,9 @@ func bigFromBase10(s string) *big.Int {
 	return n
 }
 
+// u is the BN parameter that determines the prime: 1868033³.
+var u = bigFromBase10("6518589491078791937")
+
 // p is a prime over which we form a basic field: 36u⁴+36u³+24u²+6u+1.
 var p = bigFromBase10("65000549695646603732796438742359905742825358107623003571877145026864184071783")
 
@@ -44,4 +47,9 @@ var xiToPSquaredMinus1Over6 = &gfP{0xe21a761d259c78af, 0x6358fa3f5e84f7e, 0xb7c4
 var xiToPMinus1Over6 = &gfP2{
 	gfP{0x25af52988477cdb7, 0x3d81a455ddced86a, 0x227d012e872c2431, 0x179198d3ea65d05},
 	gfP{0x7407634dd9cca958, 0x36d5bd6c7afb8f26, 0xf4b1c32cebd880fa, 0x6aa7869306f455f},
+}
+
+var xiToPMinus1Over2 = &gfP2{
+	gfP{0x19da71333653ee20, 0x7eaaf34fc6ed6019, 0xc4ba3a29a60cdd1d, 0x75281311bcc9df79},
+	gfP{0x18dbee03fb7708fa, 0x1e7601a602c843c7, 0x5dde0688cdb231cb, 0x86db5cf2c605a524},
 }

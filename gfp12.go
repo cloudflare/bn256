@@ -78,7 +78,7 @@ func (e *gfP12) IsOne() bool {
 func (e *gfP12) Conjugate(a *gfP12) *gfP12 {
 	e.x.Neg(&a.x)
 	e.y.Set(&a.y)
-	return a
+	return e
 }
 
 func (e *gfP12) Neg(a *gfP12) *gfP12 {
