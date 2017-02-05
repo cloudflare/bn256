@@ -336,12 +336,22 @@ func (e *GT) ScalarBaseMult(k *big.Int) *GT {
 	if e.p == nil {
 		e.p = &gfP12{}
 	}
-	e.p.Exp(gfP12Gen, k)
+	e.p.latticeExp(gfP12Gen, k)
 	return e
 }
 
-// ScalarMult sets e to a*k and then returns e.
+// ScalarMult sets e to a*k and then returns e. (If e is not guaranteed to be an element of the group because it is the
+// output of Miller(), use ScalarMultSimple.)
 func (e *GT) ScalarMult(a *GT, k *big.Int) *GT {
+	if e.p == nil {
+		e.p = &gfP12{}
+	}
+	e.p.latticeExp(a.p, k)
+	return e
+}
+
+// ScalarMultSimple sets e to a*k and then returns e.
+func (e *GT) ScalarMultSimple(a *GT, k *big.Int) *GT {
 	if e.p == nil {
 		e.p = &gfP12{}
 	}

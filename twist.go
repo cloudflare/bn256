@@ -157,14 +157,24 @@ func (c *twistPoint) Double(a *twistPoint) {
 }
 
 func (c *twistPoint) Mul(a *twistPoint, scalar *big.Int) {
-	sum, t := &twistPoint{}, &twistPoint{}
+	precomp := [1 << 2]*twistPoint{nil, &twistPoint{}, &twistPoint{}, &twistPoint{}}
+	precomp[1].Set(a)
+	precomp[2].Set(a)
+	precomp[2].x.MulScalar(&precomp[2].x, xiToPSquaredMinus1Over3)
+	precomp[3].Add(precomp[1], precomp[2])
 
-	for i := scalar.BitLen(); i >= 0; i-- {
+	multiScalar := curveLattice.Multi(scalar)
+
+	sum := &twistPoint{}
+	sum.SetInfinity()
+	t := &twistPoint{}
+
+	for i := len(multiScalar) - 1; i >= 0; i-- {
 		t.Double(sum)
-		if scalar.Bit(i) != 0 {
-			sum.Add(t, a)
-		} else {
+		if multiScalar[i] == 0 {
 			sum.Set(t)
+		} else {
+			sum.Add(t, precomp[multiScalar[i]])
 		}
 	}
 
