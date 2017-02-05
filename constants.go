@@ -38,3 +38,10 @@ var xiTo2PMinus2Over3 = &gfP2{
 var xiToPSquaredMinus1Over3 = &gfP{0x12d3cef5e1ada57d, 0xe2eca1463753babb, 0xca41e40ddccf750, 0x551337060397e04c}
 
 var xiTo2PSquaredMinus2Over3 = &gfP{0x3642364f386c1db8, 0xe825f92d2acd661f, 0xf2aba7e846c19d14, 0x5a0bcea3dc52b7a0}
+
+var xiToPSquaredMinus1Over6 = &gfP{0xe21a761d259c78af, 0x6358fa3f5e84f7e, 0xb7c444d01ac33f0d, 0x35a9333f6e50d058}
+
+var xiToPMinus1Over6 = &gfP2{
+	gfP{0x25af52988477cdb7, 0x3d81a455ddced86a, 0x227d012e872c2431, 0x179198d3ea65d05},
+	gfP{0x7407634dd9cca958, 0x36d5bd6c7afb8f26, 0xf4b1c32cebd880fa, 0x6aa7869306f455f},
+}
