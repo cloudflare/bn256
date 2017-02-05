@@ -158,6 +158,40 @@ func (c *gfP12) Exp(a *gfP12, power *big.Int) *gfP12 {
 	return c
 }
 
+func (c *gfP12) latticeExp(a *gfP12, power *big.Int) *gfP12 {
+	base := [1 << 2]*gfP12{&gfP12{}, &gfP12{}, &gfP12{}, &gfP12{}}
+	base[0].Set(a)
+	base[1].Frobenius(base[0])
+	base[2].FrobeniusP2(base[0])
+	base[3].Frobenius(base[2])
+
+	precomp := [1 << 4]*gfP12{}
+	targetLattice.Precompute(func(i, j uint) {
+		if precomp[j] == nil {
+			precomp[j] = &gfP12{}
+			precomp[j].SetOne()
+		}
+		precomp[j].Mul(precomp[j], base[i])
+	})
+	multiPower := targetLattice.Multi(power)
+
+	sum := &gfP12{}
+	sum.SetOne()
+	t := &gfP12{}
+
+	for i := len(multiPower) - 1; i >= 0; i-- {
+		t.Square(sum)
+		if multiPower[i] == 0 {
+			sum.Set(t)
+		} else {
+			sum.Mul(t, precomp[multiPower[i]])
+		}
+	}
+
+	c.Set(sum)
+	return c
+}
+
 func (e *gfP12) Square(a *gfP12) *gfP12 {
 	// Complex squaring algorithm
 	v0 := (&gfP6{}).Mul(&a.x, &a.y)
