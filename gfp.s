@@ -13,7 +13,7 @@ TEXT ·gfpNeg(SB),0,$0-16
 	SBBQ 24(DI), R11
 
 	MOVQ $0, AX
-	gfpReduce(R8,R9,R10,R11,AX, R12,R13,R14,R15,BX)
+	gfpCarry(R8,R9,R10,R11,AX, R12,R13,R14,R15,BX)
 
 	MOVQ c+0(FP), DI
 	storeBlock(R8,R9,R10,R11, 0(DI))
@@ -32,7 +32,7 @@ TEXT ·gfpAdd(SB),0,$0-24
 	ADCQ 24(SI), R11
 	ADCQ $0, R12
 
-	gfpReduce(R8,R9,R10,R11,R12, R13,R14,R15,AX,BX)
+	gfpCarry(R8,R9,R10,R11,R12, R13,R14,R15,AX,BX)
 
 	MOVQ c+0(FP), DI
 	storeBlock(R8,R9,R10,R11, 0(DI))
@@ -78,55 +78,7 @@ TEXT ·gfpMul(SB),0,$96-24
 	storeBlock( R8, R9,R10,R11,  0(SP))
 	storeBlock(R12,R13,R14,R15, 32(SP))
 
-	// m = (T * N') mod R, store m in R8:R9:R10:R11
-	MOVQ ·np+0(SB), DX
-	MULXQ 0(SP), R8, R9
-	MULXQ 8(SP), AX, R10
-	ADDQ AX, R9
-	MULXQ 16(SP), AX, R11
-	ADCQ AX, R10
-	MULXQ 24(SP), AX, BX
-	ADCQ AX, R11
-
-	MOVQ ·np+8(SB), DX
-	MULXQ 0(SP), AX, BX
-	ADDQ AX, R9
-	ADCQ BX, R10
-	MULXQ 16(SP), AX, BX
-	ADCQ AX, R11
-	MULXQ 8(SP), AX, BX
-	ADDQ AX, R10
-	ADCQ BX, R11
-
-	MOVQ ·np+16(SB), DX
-	MULXQ 0(SP), AX, BX
-	ADDQ AX, R10
-	ADCQ BX, R11
-	MULXQ 8(SP), AX, BX
-	ADDQ AX, R11
-
-	MOVQ ·np+24(SB), DX
-	MULXQ 0(SP), AX, BX
-	ADDQ AX, R11
-
-	storeBlock(R8,R9,R10,R11, 64(SP))
-
-	// m * N
-	mulArb(·p2+0(SB),·p2+8(SB),·p2+16(SB),·p2+24(SB), 64(SP))
-
-	// Add the 512-bit intermediate to m*N
-	MOVQ $0, AX
-	ADDQ 0(SP), R8
-	ADCQ 8(SP), R9
-	ADCQ 16(SP), R10
-	ADCQ 24(SP), R11
-	ADCQ 32(SP), R12
-	ADCQ 40(SP), R13
-	ADCQ 48(SP), R14
-	ADCQ 56(SP), R15
-	ADCQ $0, AX
-
-	gfpReduce(R12,R13,R14,R15,AX, R8,R9,R10,R11,BX)
+	gfpReduce()
 
 	MOVQ c+0(FP), DI
 	storeBlock(R12,R13,R14,R15, 0(DI))

@@ -52,9 +52,7 @@ func (c *twistPoint) IsOnCurve() bool {
 
 	y2, x3 := &gfP2{}, &gfP2{}
 	y2.Square(&c.y)
-	x3.Square(&c.x)
-	x3.Mul(x3, &c.x)
-	x3.Add(x3, twistB)
+	x3.Square(&c.x).Mul(x3, &c.x).Add(x3, twistB)
 
 	return *y2 == *x3
 }

@@ -14,7 +14,6 @@ func gfP2Decode(in *gfP2) *gfP2 {
 	out := &gfP2{}
 	montDecode(&out.x, &in.x)
 	montDecode(&out.y, &in.y)
-
 	return out
 }
 
@@ -95,7 +94,24 @@ func (e *gfP2) Mul(a, b *gfP2) *gfP2 {
 func (e *gfP2) MulScalar(a *gfP2, b *gfP) *gfP2 {
 	gfpMul(&e.x, &a.x, b)
 	gfpMul(&e.y, &a.y, b)
+	return e
+}
 
+// MulXi sets e=ξa where ξ=i+3 and then returns e.
+func (e *gfP2) MulXi(a *gfP2) *gfP2 {
+	// (xi+y)(i+3) = (3x+y)i+(3y-x)
+	tx := &gfP{}
+	gfpAdd(tx, &a.x, &a.x)
+	gfpAdd(tx, tx, &a.x)
+	gfpAdd(tx, tx, &a.y)
+
+	ty := &gfP{}
+	gfpAdd(ty, &a.y, &a.y)
+	gfpAdd(ty, ty, &a.y)
+	gfpSub(ty, ty, &a.x)
+
+	e.x.Set(tx)
+	e.y.Set(ty)
 	return e
 }
 
