@@ -30,3 +30,11 @@ BenchmarkG2-4        	    5000	    340622 ns/op
 BenchmarkGT-4        	    2000	    635061 ns/op
 BenchmarkPairing-4   	    1000	   1629943 ns/op
 ```
+
+official version:
+```
+BenchmarkG1-4        	    1000	   2268491 ns/op
+BenchmarkG2-4        	     300	   7227637 ns/op
+BenchmarkGT-4        	     100	  15121359 ns/op
+BenchmarkPairing-4   	      50	  20296164 ns/op
+```
