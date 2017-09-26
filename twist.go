@@ -58,7 +58,10 @@ func (c *twistPoint) IsOnCurve() bool {
 }
 
 func (c *twistPoint) SetInfinity() {
+	c.x.SetZero()
+	c.y.SetOne()
 	c.z.SetZero()
+	c.t.SetZero()
 }
 
 func (c *twistPoint) IsInfinity() bool {

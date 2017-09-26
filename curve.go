@@ -4,9 +4,8 @@ import (
 	"math/big"
 )
 
-// curvePoint implements the elliptic curve y²=x³+3. Points are kept in
-// Jacobian form and t=z² when valid. G₁ is the set of points of this curve on
-// GF(p).
+// curvePoint implements the elliptic curve y²=x³+3. Points are kept in Jacobian
+// form and t=z² when valid. G₁ is the set of points of this curve on GF(p).
 type curvePoint struct {
 	x, y, z, t gfP
 }
@@ -53,7 +52,10 @@ func (c *curvePoint) IsOnCurve() bool {
 }
 
 func (c *curvePoint) SetInfinity() {
+	c.x = gfP{0}
+	c.y = *newGFp(1)
 	c.z = gfP{0}
+	c.t = gfP{0}
 }
 
 func (c *curvePoint) IsInfinity() bool {

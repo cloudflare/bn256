@@ -1,12 +1,16 @@
-// Package bn256 implements a particular bilinear group at the 128-bit security level.
+// Package bn256 implements a particular bilinear group at the 128-bit security
+// level.
 //
-// Bilinear groups are the basis of many of the new cryptographic protocols that have been proposed over the past
-// decade. They consist of a triplet of groups (G₁, G₂ and GT) such that there exists a function e(g₁ˣ,g₂ʸ)=gTˣʸ (where
-// gₓ is a generator of the respective group). That function is called a pairing function.
+// Bilinear groups are the basis of many of the new cryptographic protocols that
+// have been proposed over the past decade. They consist of a triplet of groups
+// (G₁, G₂ and GT) such that there exists a function e(g₁ˣ,g₂ʸ)=gTˣʸ (where gₓ
+// is a generator of the respective group). That function is called a pairing
+// function.
 //
-// This package specifically implements the Optimal Ate pairing over a 256-bit Barreto-Naehrig curve as described in
-// http://cryptojedi.org/papers/dclxvi-20100714.pdf. Its output is compatible with the implementation described in that
-// paper.
+// This package specifically implements the Optimal Ate pairing over a 256-bit
+// Barreto-Naehrig curve as described in
+// http://cryptojedi.org/papers/dclxvi-20100714.pdf. Its output is compatible
+// with the implementation described in that paper.
 package bn256
 
 import (
@@ -27,8 +31,8 @@ func randomK(r io.Reader) (k *big.Int, err error) {
 	return
 }
 
-// G1 is an abstract cyclic group. The zero value is suitable for use as the output of an operation, but cannot be used
-// as an input.
+// G1 is an abstract cyclic group. The zero value is suitable for use as the
+// output of an operation, but cannot be used as an input.
 type G1 struct {
 	p *curvePoint
 }
@@ -47,7 +51,8 @@ func (g *G1) String() string {
 	return "bn256.G1" + g.p.String()
 }
 
-// ScalarBaseMult sets e to g*k where g is the generator of the group and then returns e.
+// ScalarBaseMult sets e to g*k where g is the generator of the group and then
+// returns e.
 func (e *G1) ScalarBaseMult(k *big.Int) *G1 {
 	if e.p == nil {
 		e.p = &curvePoint{}
@@ -112,7 +117,8 @@ func (e *G1) Marshal() []byte {
 	return ret
 }
 
-// Unmarshal sets e to the result of converting the output of Marshal back into a group element and then returns e.
+// Unmarshal sets e to the result of converting the output of Marshal back into
+// a group element and then returns e.
 func (e *G1) Unmarshal(m []byte) ([]byte, error) {
 	// Each value is a 256-bit number.
 	const numBytes = 256 / 8
@@ -150,8 +156,8 @@ func (e *G1) Unmarshal(m []byte) ([]byte, error) {
 	return m[2*numBytes:], nil
 }
 
-// G2 is an abstract cyclic group. The zero value is suitable for use as the output of an operation, but cannot be used
-// as an input.
+// G2 is an abstract cyclic group. The zero value is suitable for use as the
+// output of an operation, but cannot be used as an input.
 type G2 struct {
 	p *twistPoint
 }
@@ -170,7 +176,8 @@ func (e *G2) String() string {
 	return "bn256.G2" + e.p.String()
 }
 
-// ScalarBaseMult sets e to g*k where g is the generator of the group and then returns out.
+// ScalarBaseMult sets e to g*k where g is the generator of the group and then
+// returns out.
 func (e *G2) ScalarBaseMult(k *big.Int) *G2 {
 	if e.p == nil {
 		e.p = &twistPoint{}
@@ -220,42 +227,54 @@ func (e *G2) Marshal() []byte {
 	// Each value is a 256-bit number.
 	const numBytes = 256 / 8
 
-	e.p.MakeAffine()
-	ret := make([]byte, numBytes*4)
-	if e.p.IsInfinity() {
-		return ret
+	if e.p == nil {
+		e.p = &twistPoint{}
 	}
+
+	e.p.MakeAffine()
+	if e.p.IsInfinity() {
+		return make([]byte, 1)
+	}
+
+	ret := make([]byte, 1+numBytes*4)
+	ret[0] = 0x01
 	temp := &gfP{}
 
 	montDecode(temp, &e.p.x.x)
-	temp.Marshal(ret)
+	temp.Marshal(ret[1:])
 	montDecode(temp, &e.p.x.y)
-	temp.Marshal(ret[numBytes:])
+	temp.Marshal(ret[1+numBytes:])
 	montDecode(temp, &e.p.y.x)
-	temp.Marshal(ret[2*numBytes:])
+	temp.Marshal(ret[1+2*numBytes:])
 	montDecode(temp, &e.p.y.y)
-	temp.Marshal(ret[3*numBytes:])
+	temp.Marshal(ret[1+3*numBytes:])
 
 	return ret
 }
 
-// Unmarshal sets e to the result of converting the output of Marshal back into a group element and then returns e.
+// Unmarshal sets e to the result of converting the output of Marshal back into
+// a group element and then returns e.
 func (e *G2) Unmarshal(m []byte) ([]byte, error) {
 	// Each value is a 256-bit number.
 	const numBytes = 256 / 8
-
-	if len(m) < 4*numBytes {
-		return nil, errors.New("bn256: not enough data")
-	}
 
 	if e.p == nil {
 		e.p = &twistPoint{}
 	}
 
-	e.p.x.x.Unmarshal(m)
-	e.p.x.y.Unmarshal(m[numBytes:])
-	e.p.y.x.Unmarshal(m[2*numBytes:])
-	e.p.y.y.Unmarshal(m[3*numBytes:])
+	if len(m) > 0 && m[0] == 0x00 {
+		e.p.SetInfinity()
+		return m[1:], nil
+	} else if len(m) > 0 && m[0] != 0x01 {
+		return nil, errors.New("bn256: malformed point")
+	} else if len(m) < 1+4*numBytes {
+		return nil, errors.New("bn256: not enough data")
+	}
+
+	e.p.x.x.Unmarshal(m[1:])
+	e.p.x.y.Unmarshal(m[1+numBytes:])
+	e.p.y.x.Unmarshal(m[1+2*numBytes:])
+	e.p.y.y.Unmarshal(m[1+3*numBytes:])
 	montEncode(&e.p.x.x, &e.p.x.x)
 	montEncode(&e.p.x.y, &e.p.x.y)
 	montEncode(&e.p.y.x, &e.p.y.x)
@@ -275,16 +294,17 @@ func (e *G2) Unmarshal(m []byte) ([]byte, error) {
 		}
 	}
 
-	return m[4*numBytes:], nil
+	return m[1+4*numBytes:], nil
 }
 
-// GT is an abstract cyclic group. The zero value is suitable for use as the output of an operation, but cannot be used
-// as an input.
+// GT is an abstract cyclic group. The zero value is suitable for use as the
+// output of an operation, but cannot be used as an input.
 type GT struct {
 	p *gfP12
 }
 
-// RandomGT returns x and e(g₁, g₂)ˣ where x is a random, non-zero number read from r.
+// RandomGT returns x and e(g₁, g₂)ˣ where x is a random, non-zero number read
+// from r.
 func RandomGT(r io.Reader) (*big.Int, *GT, error) {
 	k, err := randomK(r)
 	if err != nil {
@@ -299,8 +319,9 @@ func Pair(g1 *G1, g2 *G2) *GT {
 	return &GT{optimalAte(g2.p, g1.p)}
 }
 
-// Miller applies Miller's algorithm, which is a bilinear function from the source groups to F_p^12.
-// Miller(g1, g2).Finalize() is equivalent to Pair(g1, g2).
+// Miller applies Miller's algorithm, which is a bilinear function from the
+// source groups to F_p^12. Miller(g1, g2).Finalize() is equivalent to Pair(g1,
+// g2).
 func Miller(g1 *G1, g2 *G2) *GT {
 	return &GT{miller(g2.p, g1.p)}
 }
@@ -309,7 +330,8 @@ func (g *GT) String() string {
 	return "bn256.GT" + g.p.String()
 }
 
-// ScalarBaseMult sets e to g*k where g is the generator of the group and then returns out.
+// ScalarBaseMult sets e to g*k where g is the generator of the group and then
+// returns out.
 func (e *GT) ScalarBaseMult(k *big.Int) *GT {
 	if e.p == nil {
 		e.p = &gfP12{}
@@ -397,7 +419,8 @@ func (e *GT) Marshal() []byte {
 	return ret
 }
 
-// Unmarshal sets e to the result of converting the output of Marshal back into a group element and then returns e.
+// Unmarshal sets e to the result of converting the output of Marshal back into
+// a group element and then returns e.
 func (e *GT) Unmarshal(m []byte) ([]byte, error) {
 	// Each value is a 256-bit number.
 	const numBytes = 256 / 8

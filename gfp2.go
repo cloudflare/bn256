@@ -4,8 +4,8 @@ package bn256
 // Pairing-Friendly Fields, Devegili et al.
 // http://eprint.iacr.org/2006/471.pdf.
 
-// gfP2 implements a field of size p² as a quadratic extension of the base
-// field where i²=-1.
+// gfP2 implements a field of size p² as a quadratic extension of the base field
+// where i²=-1.
 type gfP2 struct {
 	x, y gfP // value is xi+y.
 }

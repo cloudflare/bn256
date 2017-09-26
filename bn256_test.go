@@ -52,6 +52,7 @@ func TestG2(t *testing.T) {
 
 	Gb := new(bn256.G2).ScalarBaseMult(k)
 	mb := Gb.Marshal()
+	mb = append([]byte{0x01}, mb...)
 
 	if !bytes.Equal(ma, mb) {
 		t.Fatal("bytes are different")
