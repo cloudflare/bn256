@@ -3,9 +3,9 @@ bn256
 
 Package bn256 implements a particular bilinear group at the 128-bit security
 level. It is a modification of the official version at
-https://golang.org/x/crypto/bn256 but all operations are ~10 times faster. There
-is a `lattices` branch for non-commercial use where non-pairing operations are
-up to ~20 times faster.
+https://golang.org/x/crypto/bn256 but all operations are ~10 times faster on
+amd64 and arm64. There is a `lattices` branch for non-commercial use where
+non-pairing operations are up to ~20 times faster.
 
 Bilinear groups are the basis of many of the new cryptographic protocols that
 have been proposed over the past decade. They consist of a triplet of groups
