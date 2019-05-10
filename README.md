@@ -1,11 +1,7 @@
 bn256
 -----
 
-Package bn256 implements a particular bilinear group at the 128-bit security
-level. It is a modification of the official version at
-https://golang.org/x/crypto/bn256 but all operations are ~10 times faster on
-amd64 and arm64. There is a `lattices` branch for non-commercial use where
-non-pairing operations are up to ~20 times faster.
+Package bn256 implements a particular bilinear group.
 
 Bilinear groups are the basis of many of the new cryptographic protocols that
 have been proposed over the past decade. They consist of a triplet of groups
@@ -16,6 +12,10 @@ This package specifically implements the Optimal Ate pairing over a 256-bit
 Barreto-Naehrig curve as described in
 http://cryptojedi.org/papers/dclxvi-20100714.pdf. Its output is compatible with
 the implementation described in that paper.
+
+This package previously claimed to operate at a 128-bit security level. However,
+recent improvements in attacks mean that is no longer true. See
+https://moderncrypto.org/mail-archive/curves/2016/000740.html.
 
 ### Benchmarks
 
