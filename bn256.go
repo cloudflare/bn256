@@ -107,6 +107,7 @@ func (e *G1) Marshal() []byte {
 
 	if e.p == nil {
 		e.p = &curvePoint{}
+		e.p.SetInfinity()
 	}
 
 	e.p.MakeAffine()
@@ -236,6 +237,7 @@ func (e *G2) Marshal() []byte {
 
 	if e.p == nil {
 		e.p = &twistPoint{}
+		e.p.SetInfinity()
 	}
 
 	e.p.MakeAffine()
@@ -397,6 +399,7 @@ func (e *GT) Marshal() []byte {
 
 	if e.p == nil {
 		e.p = &gfP12{}
+		e.p.SetOne()
 	}
 
 	ret := make([]byte, numBytes*12)
