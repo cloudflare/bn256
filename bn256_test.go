@@ -41,18 +41,6 @@ func TestG1Marshal(t *testing.T) {
 	if !bytes.Equal(ma, mb) {
 		t.Fatal("bytes are different")
 	}
-
-	Ga = new(G1)
-	ma = Ga.Marshal()
-
-	one := &curvePoint{}
-	one.SetInfinity()
-	Gb = &G1{p: one}
-	mb = Gb.Marshal()
-
-	if !bytes.Equal(ma, mb) {
-		t.Fatal("bytes are different")
-	}
 }
 
 func TestG2(t *testing.T) {
@@ -84,18 +72,6 @@ func TestG2Marshal(t *testing.T) {
 		t.Fatal(err)
 	}
 	mb := Gb.Marshal()
-
-	if !bytes.Equal(ma, mb) {
-		t.Fatal("bytes are different")
-	}
-
-	Ga = new(G2)
-	ma = Ga.Marshal()
-
-	one := &twistPoint{}
-	one.SetInfinity()
-	Gb = &G2{p: one}
-	mb = Gb.Marshal()
 
 	if !bytes.Equal(ma, mb) {
 		t.Fatal("bytes are different")
@@ -134,18 +110,6 @@ func TestGTMarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 	mb := Gb.Marshal()
-
-	if !bytes.Equal(ma, mb) {
-		t.Fatal("bytes are different")
-	}
-
-	Ga = new(GT)
-	ma = Ga.Marshal()
-
-	one := &gfP12{}
-	one.SetOne()
-	Gb = &GT{p: one}
-	mb = Gb.Marshal()
 
 	if !bytes.Equal(ma, mb) {
 		t.Fatal("bytes are different")
