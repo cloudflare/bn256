@@ -65,6 +65,13 @@ func (e *gfP) Invert(f *gfP) {
     e.Pow(f, pI)
 }
 
+func (e *gfP) Sqrt(f *gfP) {
+    // since s = (p-1)/2 is odd, then q=(s+1)/2 is a positive integer, 
+    // and we can define e = f^q that yields e^2=f^s·f=f.
+    q := [4]uint64{0x86172b1b1782259a, 0x7b96e234482d6d67, 0x6a9bfb2e18613708, 0x23ed4078d2a8e1fe}
+    e.Pow(f, q)
+}
+
 func (e *gfP) Marshal(out []byte) {
 	for w := uint(0); w < 4; w++ {
 		for b := uint(0); b < 8; b++ {
