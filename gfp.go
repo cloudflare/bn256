@@ -91,6 +91,8 @@ func (e *gfP) Unmarshal(in []byte) {
 func montEncode(c, a *gfP) { gfpMul(c, a, r2) }
 func montDecode(c, a *gfP) { gfpMul(c, a, &gfP{1}) }
 
+var one = *newGFp(1)
+
 func legendre(e *gfP) int {
     if *e == [4]uint64{} {
         return 0
@@ -100,7 +102,7 @@ func legendre(e *gfP) int {
     f := &gfP{}
     f.Pow(e, pL)
 
-    if *f == *newGFp(1) {
+    if *f == one {
         return 1
     }
 
