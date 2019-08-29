@@ -19,10 +19,7 @@ func newGFp(x int64) (out *gfP) {
 	return out
 }
 
-func fromBytes(b []byte) *gfP {
-	if len(b) != 32 {
-		panic("fromBytes accepts only slices of lenght 32")
-	}
+func fromBytes(b [32]byte) *gfP {
 	e := &gfP{}
 	for w := 0; w < 4; w++ {
 		e[w] = binary.LittleEndian.Uint64(b[8*w : 8*w+8])

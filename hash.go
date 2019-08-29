@@ -1,7 +1,7 @@
 package bn256
 
 import (
-	"golang.org/x/crypto/sha3"
+	"crypto/sha256"
 )
 
 // Hash implements a hashing function into the G1 group. It uses Fouque-Tibouchi encoding described here
@@ -10,9 +10,7 @@ func Hash(msg []byte) *G1 {
 	// calculate w = (s * t)/(1 + B + t^2)
 	w := &gfP{}
 
-	h := make([]byte, 32)
-	sha3.ShakeSum128(h, msg)
-	t := fromBytes(h)
+	t := fromBytes(sha256.Sum256(msg))
 	montEncode(t, t)
 
 	// s is a square root of -3
@@ -100,9 +98,7 @@ func Hash(msg []byte) *G1 {
 // https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-03.pdf
 // Note: this hash is insecure as it is vulnerable to side-channel attacks.
 func HashTAI(msg []byte) *G1 {
-	h := make([]byte, 32)
-	sha3.ShakeSum128(h, msg)
-	x := fromBytes(h)
+	x := fromBytes(sha256.Sum256(msg))
 	montEncode(x, x)
 	for {
 		t := &gfP{}
