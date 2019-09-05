@@ -1,17 +1,14 @@
 package bn256
 
-import (
-	"crypto/sha256"
-)
-
 // Hash implements a hashing function into the G1 group. It uses Fouque-Tibouchi encoding described here
-// https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-03.pdf
+// https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
 func Hash(msg []byte) *G1 {
+	return mapToCurve(hashToBase(msg))
+}
+
+func mapToCurve(t *gfP) *G1 {
 	// calculate w = (s * t)/(1 + B + t^2)
 	w := &gfP{}
-
-	t := fromBytes(sha256.Sum256(msg))
-	montEncode(t, t)
 
 	// s is a square root of -3
 	s := &gfP{0x236e675956be783b, 0x053957e6f379ab64, 0xe60789a768f4a5c4, 0x04f8979dd8bad754}
@@ -98,7 +95,7 @@ func Hash(msg []byte) *G1 {
 // https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-03.pdf
 // Note: this hash is insecure as it is vulnerable to side-channel attacks.
 func HashTAI(msg []byte) *G1 {
-	x := fromBytes(sha256.Sum256(msg))
+	x := hashToBase(msg)
 	montEncode(x, x)
 	for {
 		t := &gfP{}

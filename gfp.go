@@ -1,6 +1,7 @@
 package bn256
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
 )
@@ -19,11 +20,27 @@ func newGFp(x int64) (out *gfP) {
 	return out
 }
 
-func fromBytes(b [32]byte) *gfP {
-	e := &gfP{}
+func os2ip(b [32]byte) [4]uint64 {
+	t := [4]uint64{}
 	for w := 0; w < 4; w++ {
-		e[w] = binary.LittleEndian.Uint64(b[8*w : 8*w+8])
+		t[w] = binary.LittleEndian.Uint64(b[8*w : 8*w+8])
 	}
+	return t
+}
+
+// hashToBase implements hashing a message to an element of the field.
+// It follows the recommendations from https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
+// Note that:
+//      - we don't use HKDF-Extract and HKDF-Expand procedures as the field is prime,
+//      - the bias introduced by interpreting a 256-bit hash as an integer modulo p is negligeble.
+func hashToBase(msg []byte) *gfP {
+	dstMsg := make([]byte, 16+len(msg))
+	copy(dstMsg[:16], []byte("H2C-BN256-SHA256"))
+	copy(dstMsg[16:], msg)
+	h := sha256.Sum256(dstMsg)
+	e := &gfP{}
+	*e = gfP(os2ip(h))
+	montEncode(e, e)
 	return e
 }
 
