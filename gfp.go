@@ -74,16 +74,12 @@ func (e *gfP) Exp(f *gfP, bits [4]uint64) {
 }
 
 func (e *gfP) Invert(f *gfP) {
-	// pI is (p-2)
-	pI := [4]uint64{0x185cac6c5e089665, 0xee5b88d120b5b59e, 0xaa6fecb86184dc21, 0x8fb501e34aa387f9}
-	e.Exp(f, pI)
+	e.Exp(f, pMinus2)
 }
 
 func (e *gfP) Sqrt(f *gfP) {
-	// since s = (p-1)/2 is odd, then q=(s+1)/2 is a positive integer,
-	// and we can define e = f^q that yields e^2=f^s·f=f.
-	q := [4]uint64{0x86172b1b1782259a, 0x7b96e234482d6d67, 0x6a9bfb2e18613708, 0x23ed4078d2a8e1fe}
-	e.Exp(f, q)
+	// Since p = 4k+3, then e = f^(k+1) is a root of f.
+	e.Exp(f, pPlus1over4)
 }
 
 func (e *gfP) Marshal(out []byte) {
@@ -111,10 +107,8 @@ func legendre(e *gfP) int {
 	if *e == [4]uint64{} {
 		return 0
 	}
-	// pL is (p-1)/2
-	pL := [4]uint64{0x0c2e56362f044b33, 0xf72dc468905adacf, 0xd537f65c30c26e10, 0x47da80f1a551c3fc}
 	f := &gfP{}
-	f.Exp(e, pL)
+	f.Exp(e, pMinus1Over2)
 
 	if *f == one {
 		return 1
