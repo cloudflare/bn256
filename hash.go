@@ -90,23 +90,3 @@ func mapToCurve(t *gfP) *G1 {
 
 	return &G1{cp}
 }
-
-// HashTAI implements a hashing function into the G1 group. It uses try-and-increment encoding described here
-// https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-03.pdf
-// Note: this hash is insecure as it is vulnerable to side-channel attacks.
-func HashTAI(msg []byte) *G1 {
-	x := hashToBase(msg)
-	montEncode(x, x)
-	for {
-		t := &gfP{}
-		gfpMul(t, x, x)
-		gfpMul(t, t, x)
-		gfpAdd(t, t, curveB)
-		if legendre(t) == 1 {
-			y := &gfP{}
-			y.Sqrt(t)
-			return &G1{&curvePoint{*x, *y, one, one}}
-		}
-		gfpAdd(x, x, &one)
-	}
-}
