@@ -1,17 +1,16 @@
 package bn256
 
-// Hash implements a hashing function into the G1 group. It uses Fouque-Tibouchi encoding described here
+// HashG1 implements a hashing function into the G1 group. It uses Fouque-Tibouchi encoding described here
 // https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
-func Hash(msg []byte) *G1 {
+func HashG1(msg []byte) *G1 {
 	return mapToCurve(hashToBase(msg))
 }
 
 func mapToCurve(t *gfP) *G1 {
+	one := *newGFp(1)
+
 	// calculate w = (s * t)/(1 + B + t^2)
 	w := &gfP{}
-
-	// s is a square root of -3
-	s := &gfP{0x236e675956be783b, 0x053957e6f379ab64, 0xe60789a768f4a5c4, 0x04f8979dd8bad754}
 
 	t2 := &gfP{}
 	gfpMul(t2, t, t)
@@ -29,11 +28,7 @@ func mapToCurve(t *gfP) *G1 {
 	tw := &gfP{}
 	gfpMul(tw, t, w)
 	x1 := &gfP{}
-	gfpAdd(x1, s, newGFp(-1))
-	half := newGFp(2)
-	half.Invert(half)
-	gfpMul(x1, x1, half)
-	gfpSub(x1, x1, tw)
+	gfpSub(x1, sMinus1Over2, tw)
 
 	// check if y=x1^3+3 is a square
 	y := &gfP{}

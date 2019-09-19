@@ -10,22 +10,22 @@ import (
 
 func TestKnownHashes(t *testing.T) {
 	for i, mh := range marshaledHashes {
-		g := Hash([]byte{byte(i)})
+		g := HashG1([]byte{byte(i)})
 		if !bytes.Equal(mh[:], g.Marshal()) {
 			t.Fatal("hash doesn't match a known value")
 		}
 	}
 }
 
-func TestHashCollision(t *testing.T) {
-	g := Hash([]byte(strconv.Itoa(rand.Int())))
-	h := Hash([]byte(strconv.Itoa(rand.Int())))
+func TestHashG1Collision(t *testing.T) {
+	g := HashG1([]byte(strconv.Itoa(rand.Int())))
+	h := HashG1([]byte(strconv.Itoa(rand.Int())))
 	if *(g.p) == *(h.p) {
 		t.Fatal("found a collision of hashes ")
 	}
 }
 
-func BenchmarkHash(b *testing.B) {
+func BenchmarkHashG1(b *testing.B) {
 	data := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
 		data[i] = []byte(strconv.Itoa(i))
@@ -34,7 +34,7 @@ func BenchmarkHash(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		Hash(data[i])
+		HashG1(data[i])
 	}
 }
 

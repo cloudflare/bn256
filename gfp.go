@@ -101,17 +101,18 @@ func (e *gfP) Unmarshal(in []byte) {
 func montEncode(c, a *gfP) { gfpMul(c, a, r2) }
 func montDecode(c, a *gfP) { gfpMul(c, a, &gfP{1}) }
 
-var one = *newGFp(1)
-
 func legendre(e *gfP) int {
 	if *e == [4]uint64{} {
 		return 0
 	}
 	f := &gfP{}
+	// Since p = 4k+3, then e^(2k+1) is the Legendre symbol of e.
 	f.Exp(e, pMinus1Over2)
 
-	if *f == one {
-		return 1
+	montDecode(f, f)
+
+	if *f != [4]uint64{} {
+		return 2*int(f[0]&1) - 1
 	}
 
 	return -1

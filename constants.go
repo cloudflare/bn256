@@ -61,5 +61,11 @@ var pPlus1over4 = [4]uint64{0x86172b1b1782259a, 0x7b96e234482d6d67, 0x6a9bfb2e18
 // pMinus2 is p-2.
 var pMinus2 = [4]uint64{0x185cac6c5e089665, 0xee5b88d120b5b59e, 0xaa6fecb86184dc21, 0x8fb501e34aa387f9}
 
-// pMinus1Over2 is (p-1)/2
+// pMinus1Over2 is (p-1)/2.
 var pMinus1Over2 = [4]uint64{0x0c2e56362f044b33, 0xf72dc468905adacf, 0xd537f65c30c26e10, 0x47da80f1a551c3fc}
+
+// s is a square root of -3.
+var s = &gfP{0x236e675956be783b, 0x053957e6f379ab64, 0xe60789a768f4a5c4, 0x04f8979dd8bad754}
+
+// sMinus1Over2 is (s-1)/2.
+var sMinus1Over2 = &gfP{0x3642364f386c1db8, 0xe825f92d2acd661f, 0xf2aba7e846c19d14, 0x5a0bcea3dc52b7a0}
