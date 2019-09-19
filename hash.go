@@ -10,16 +10,26 @@ func mapToCurve(t *gfP) *G1 {
 	one := *newGFp(1)
 
 	// calculate w = (s * t)/(1 + B + t^2)
+	// we calculate w0 = s * t * (1 + B + t^2) and inverse of it, so that w = (st)^2/w0
+	// and then later x3 = 1 + (1 + B + t^2)^4/w0^2
 	w := &gfP{}
 
+	// a = (1 + B + t^2)
+	a := &gfP{}
 	t2 := &gfP{}
 	gfpMul(t2, t, t)
-	gfpAdd(w, curveB, t2)
-	gfpAdd(w, w, &one)
-	w.Invert(w)
+	gfpAdd(a, curveB, t2)
+	gfpAdd(a, a, &one)
 
-	gfpMul(w, w, s)
-	gfpMul(w, w, t)
+	st := &gfP{}
+	gfpMul(st, s, t)
+
+	w0 := &gfP{}
+	gfpMul(w0, st, a)
+	w0.Invert(w0)
+
+	gfpMul(w, st, st)
+	gfpMul(w, w, w0)
 
 	e := legendre(t)
 	cp := &curvePoint{z: one, t: one}
@@ -65,11 +75,13 @@ func mapToCurve(t *gfP) *G1 {
 		return &G1{cp}
 	}
 
-	// calculate x3 = 1 + (1/ww)
+	// calculate x3 = 1 + (1/ww) = 1 + a^4 * w0^2
 	x3 := &gfP{}
-	gfpMul(x3, w, w)
-	w.Invert(w)
-	gfpAdd(w, w, &one)
+	gfpMul(x3, a, a)
+	gfpMul(x3, x3, x3)
+	gfpMul(x3, x3, w0)
+	gfpMul(x3, x3, w0)
+	gfpAdd(x3, x3, &one)
 
 	y.Set(x3)
 	gfpMul(y, x3, x3)
