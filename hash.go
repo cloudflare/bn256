@@ -31,7 +31,7 @@ func mapToCurve(t *gfP) *G1 {
 	gfpMul(w, st, st)
 	gfpMul(w, w, w0)
 
-	e := legendre(t)
+	e := sign0(t)
 	cp := &curvePoint{z: one, t: one}
 
 	// calculate x1 = ((-1 + s) / 2) - t * w
