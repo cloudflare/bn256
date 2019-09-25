@@ -49,7 +49,7 @@ func mapToCurve(t *gfP) *G1 {
 	if legendre(y) == 1 {
 		cp.x = *x1
 		y.Sqrt(y)
-		if e == -1 {
+		if e != sign0(y) {
 			gfpNeg(y, y)
 		}
 		cp.y = *y
@@ -68,7 +68,7 @@ func mapToCurve(t *gfP) *G1 {
 	if legendre(y) == 1 {
 		cp.x = *x2
 		y.Sqrt(y)
-		if e == -1 {
+		if e != sign0(y) {
 			gfpNeg(y, y)
 		}
 		cp.y = *y
@@ -90,7 +90,7 @@ func mapToCurve(t *gfP) *G1 {
 
 	cp.x = *x3
 	y.Sqrt(y)
-	if e == -1 {
+	if e != sign0(y) {
 		gfpNeg(y, y)
 	}
 	cp.y = *y
