@@ -2,8 +2,11 @@ package bn256
 
 import (
 	"crypto/sha256"
-	"encoding/binary"
 	"fmt"
+	"io"
+	"math/big"
+
+	"golang.org/x/crypto/hkdf"
 )
 
 type gfP [4]uint64
@@ -20,28 +23,35 @@ func newGFp(x int64) (out *gfP) {
 	return out
 }
 
-func os2ip(b [32]byte) [4]uint64 {
-	t := [4]uint64{}
+func fromBigInt(x *big.Int) *gfP {
+	e := &gfP{}
+	mask := new(big.Int).SetUint64(^uint64(0))
 	for w := 0; w < 4; w++ {
-		t[w] = binary.LittleEndian.Uint64(b[8*w : 8*w+8])
+		if x.IsUint64() {
+			e[w] = x.Uint64()
+			break
+		}
+		e[w] = new(big.Int).And(x, mask).Uint64()
+		x.Rsh(x, 64)
 	}
-	return t
+
+	montEncode(e, e)
+	return e
 }
 
 // hashToBase implements hashing a message to an element of the field.
 // It follows the recommendations from https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
-// Note that:
-//      - we don't use HKDF-Extract and HKDF-Expand procedures as the field is prime,
-//      - the bias introduced by interpreting a 256-bit hash as an integer modulo p is negligeble.
 func hashToBase(msg []byte) *gfP {
-	dstMsg := make([]byte, 16+len(msg))
-	copy(dstMsg[:16], []byte("H2C-BN256-SHA256"))
-	copy(dstMsg[16:], msg)
-	h := sha256.Sum256(dstMsg)
-	e := &gfP{}
-	*e = gfP(os2ip(h))
-	montEncode(e, e)
-	return e
+	hash := sha256.New
+	m := hkdf.Extract(hash, msg, nil)
+	info := []byte("H2C")
+	t := make([]byte, 48)
+	if _, err := io.ReadFull(hkdf.Expand(hash, m, info), t); err != nil {
+		panic(err)
+	}
+	x := new(big.Int).Mod(new(big.Int).SetBytes(t), p)
+
+	return fromBigInt(x)
 }
 
 func (e *gfP) String() string {
