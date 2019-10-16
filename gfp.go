@@ -2,8 +2,8 @@ package bn256
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
-	"io"
 	"math/big"
 
 	"golang.org/x/crypto/hkdf"
@@ -41,17 +41,24 @@ func fromBigInt(x *big.Int) *gfP {
 
 // hashToBase implements hashing a message to an element of the field.
 // It follows the recommendations from https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
-func hashToBase(msg []byte) *gfP {
-	hash := sha256.New
-	m := hkdf.Extract(hash, msg, nil)
-	info := []byte("H2C")
-	t := make([]byte, 48)
-	if _, err := io.ReadFull(hkdf.Expand(hash, m, info), t); err != nil {
+// L = ceil((256+128)/8)=48, ctr = 0, i = 1
+func hashToBase(msg, salt []byte) *gfP {
+	var t [48]byte
+	info := []byte{'H', '2', 'C', byte(0), byte(1)}
+	r := hkdf.New(sha256.New, msg, salt, info)
+	if _, err := r.Read(t[:]); err != nil {
 		panic(err)
 	}
-	x := new(big.Int).Mod(new(big.Int).SetBytes(t), p)
-
-	return fromBigInt(x)
+	var x big.Int
+	v := x.SetBytes(t[:]).Mod(&x, p).Bytes()
+	u := &gfP{
+		binary.LittleEndian.Uint64(v[0*8 : 1*8]),
+		binary.LittleEndian.Uint64(v[1*8 : 2*8]),
+		binary.LittleEndian.Uint64(v[2*8 : 3*8]),
+		binary.LittleEndian.Uint64(v[3*8 : 4*8]),
+	}
+	montEncode(u, u)
+	return u
 }
 
 func (e *gfP) String() string {
