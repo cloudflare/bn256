@@ -2,8 +2,9 @@ package bn256
 
 // HashG1 implements a hashing function into the G1 group. It uses Fouque-Tibouchi encoding described here
 // https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
-func HashG1(msg []byte) *G1 {
-	return mapToCurve(hashToBase(msg))
+// Non-secret salt, optional (can be nil); recommended: hash-length random value.
+func HashG1(msg, salt []byte) *G1 {
+	return mapToCurve(hashToBase(msg, salt))
 }
 
 func mapToCurve(t *gfP) *G1 {
