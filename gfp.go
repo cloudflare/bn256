@@ -23,29 +23,13 @@ func newGFp(x int64) (out *gfP) {
 	return out
 }
 
-func fromBigInt(x *big.Int) *gfP {
-	e := &gfP{}
-	mask := new(big.Int).SetUint64(^uint64(0))
-	for w := 0; w < 4; w++ {
-		if x.IsUint64() {
-			e[w] = x.Uint64()
-			break
-		}
-		e[w] = new(big.Int).And(x, mask).Uint64()
-		x.Rsh(x, 64)
-	}
-
-	montEncode(e, e)
-	return e
-}
-
 // hashToBase implements hashing a message to an element of the field.
 // It follows the recommendations from https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
 // L = ceil((256+128)/8)=48, ctr = 0, i = 1
-func hashToBase(msg, salt []byte) *gfP {
+func hashToBase(msg, dst []byte) *gfP {
 	var t [48]byte
 	info := []byte{'H', '2', 'C', byte(0), byte(1)}
-	r := hkdf.New(sha256.New, msg, salt, info)
+	r := hkdf.New(sha256.New, msg, dst, info)
 	if _, err := r.Read(t[:]); err != nil {
 		panic(err)
 	}
