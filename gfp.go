@@ -24,7 +24,7 @@ func newGFp(x int64) (out *gfP) {
 }
 
 // hashToBase implements hashing a message to an element of the field.
-// It follows the recommendations from https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
+//
 // L = ceil((256+128)/8)=48, ctr = 0, i = 1
 func hashToBase(msg, dst []byte) *gfP {
 	var t [48]byte
@@ -35,11 +35,13 @@ func hashToBase(msg, dst []byte) *gfP {
 	}
 	var x big.Int
 	v := x.SetBytes(t[:]).Mod(&x, p).Bytes()
+	v32 := [32]byte{}
+	copy(v32[:len(v)], v)
 	u := &gfP{
-		binary.LittleEndian.Uint64(v[0*8 : 1*8]),
-		binary.LittleEndian.Uint64(v[1*8 : 2*8]),
-		binary.LittleEndian.Uint64(v[2*8 : 3*8]),
-		binary.LittleEndian.Uint64(v[3*8 : 4*8]),
+		binary.LittleEndian.Uint64(v32[0*8 : 1*8]),
+		binary.LittleEndian.Uint64(v32[1*8 : 2*8]),
+		binary.LittleEndian.Uint64(v32[2*8 : 3*8]),
+		binary.LittleEndian.Uint64(v32[3*8 : 4*8]),
 	}
 	montEncode(u, u)
 	return u
@@ -56,7 +58,7 @@ func (e *gfP) Set(f *gfP) {
 	e[3] = f[3]
 }
 
-func (e *gfP) Exp(f *gfP, bits [4]uint64) {
+func (e *gfP) exp(f *gfP, bits [4]uint64) {
 	sum, power := &gfP{}, &gfP{}
 	sum.Set(rN1)
 	power.Set(f)
@@ -75,12 +77,12 @@ func (e *gfP) Exp(f *gfP, bits [4]uint64) {
 }
 
 func (e *gfP) Invert(f *gfP) {
-	e.Exp(f, pMinus2)
+	e.exp(f, pMinus2)
 }
 
 func (e *gfP) Sqrt(f *gfP) {
 	// Since p = 4k+3, then e = f^(k+1) is a root of f.
-	e.Exp(f, pPlus1over4)
+	e.exp(f, pPlus1Over4)
 }
 
 func (e *gfP) Marshal(out []byte) {
@@ -103,8 +105,8 @@ func montEncode(c, a *gfP) { gfpMul(c, a, r2) }
 func montDecode(c, a *gfP) { gfpMul(c, a, &gfP{1}) }
 
 func sign0(e *gfP) int {
-	var x [4]uint64
-	montDecode((*gfP)(&x), e)
+	x := &gfP{}
+	montDecode(x, e)
 	for w := 3; w >= 0; w-- {
 		if x[w] > pMinus1Over2[w] {
 			return 1
@@ -118,7 +120,7 @@ func sign0(e *gfP) int {
 func legendre(e *gfP) int {
 	f := &gfP{}
 	// Since p = 4k+3, then e^(2k+1) is the Legendre symbol of e.
-	f.Exp(e, pMinus1Over2)
+	f.exp(e, pMinus1Over2)
 
 	montDecode(f, f)
 

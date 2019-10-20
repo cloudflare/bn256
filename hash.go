@@ -1,8 +1,8 @@
 package bn256
 
-// HashG1 implements a hashing function into the G1 group. It uses Fouque-Tibouchi encoding described
-// in the following document https://tools.ietf.org/pdf/draft-irtf-cfrg-hash-to-curve-04.pdf
-// dst represents domain separation tag, see the document for a detailed description.
+// HashG1 implements a hashing function into the G1 group.
+//
+// dst represents domain separation tag, similar to salt, for the hash.
 func HashG1(msg, dst []byte) *G1 {
 	return mapToCurve(hashToBase(msg, dst))
 }
