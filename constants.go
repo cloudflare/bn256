@@ -55,7 +55,7 @@ var r2 = &gfP{0x9c21c3ff7e444f56, 0x409ed151b2efb0c2, 0xc6dc37b80fb1651, 0x7c36e
 // r3 is R^3 where R = 2^256 mod p.
 var r3 = &gfP{0x2af2dfb9324a5bb8, 0x388f899054f538a4, 0xdf2ff66396b107a7, 0x24ebbbb3a2529292}
 
-// pPlus1over4 is (p+1)/4.
+// pPlus1Over4 is (p+1)/4.
 var pPlus1Over4 = [4]uint64{0x86172b1b1782259a, 0x7b96e234482d6d67, 0x6a9bfb2e18613708, 0x23ed4078d2a8e1fe}
 
 // pMinus2 is p-2.

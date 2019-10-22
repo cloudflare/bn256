@@ -36,7 +36,9 @@ func hashToBase(msg, dst []byte) *gfP {
 	var x big.Int
 	v := x.SetBytes(t[:]).Mod(&x, p).Bytes()
 	v32 := [32]byte{}
-	copy(v32[:len(v)], v)
+	for i := len(v) - 1; i >= 0; i-- {
+		v32[len(v)-1-i] = v[i]
+	}
 	u := &gfP{
 		binary.LittleEndian.Uint64(v32[0*8 : 1*8]),
 		binary.LittleEndian.Uint64(v32[1*8 : 2*8]),
