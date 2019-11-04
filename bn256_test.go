@@ -164,6 +164,54 @@ func TestTripartiteDiffieHellman(t *testing.T) {
 	}
 }
 
+func TestSelfAddG1(t *testing.T) {
+	_, Ga, err := RandomG1(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	Gb := &G1{curveGen}
+	Gb.p.Double(Ga.p)
+	mb := Gb.Marshal()
+
+	Ga.Add(Ga, Ga)
+	ma := Ga.Marshal()
+
+	if !bytes.Equal(ma, mb) {
+		t.Fatal("bytes are different")
+	}
+}
+
+func TestSelfAddG2(t *testing.T) {
+	_, Ga, err := RandomG2(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	Gb := &G2{twistGen}
+	Gb.p.Double(Ga.p)
+	mb := Gb.Marshal()
+
+	Ga.Add(Ga, Ga)
+	ma := Ga.Marshal()
+
+	if !bytes.Equal(ma, mb) {
+		t.Fatal("bytes are different")
+	}
+}
+
+func TestDirtyUnmarshal(t *testing.T) {
+	_, Ga, err := RandomG2(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ma := Ga.Marshal()
+
+	if _, err := Ga.Unmarshal(ma); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func BenchmarkG1(b *testing.B) {
 	x, _ := rand.Int(rand.Reader, Order)
 	b.ResetTimer()
