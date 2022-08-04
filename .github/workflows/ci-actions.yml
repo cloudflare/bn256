@@ -1,0 +1,63 @@
+name: Cloudflare/bn256
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  amd64_job:
+    name: Go-${{matrix.GOVER}}/amd64
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        GOVER: ['1.18', '1.17', '1.16']
+    steps:
+      - name: Setup Go-${{ matrix.GOVER }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.GOVER }}
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Building
+        run: go build -v ./...
+      - name: Testing
+        run: go test -v -count=1 ./...
+  arm64_job:
+    name: Go-${{matrix.CFG[2]}}/${{matrix.CFG[0]}}
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        CFG: [[arm64, arm64v8, 1.18]]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Enabling Docker Experimental
+        run: |
+          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          sudo service docker restart
+      - name: Pulling Images
+        run: |
+          docker pull -q multiarch/qemu-user-static
+          docker pull -q --platform linux/${{matrix.CFG[0]}} ${{matrix.CFG[1]}}/golang:${{matrix.CFG[2]}}
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      - name: Testing
+        run: |
+          docker run --rm -v `pwd`:`pwd` -w `pwd` ${{matrix.CFG[1]}}/golang:${{matrix.CFG[2]}} go test -v ./...
+  osCompat:
+    runs-on: ${{ matrix.os }}
+    name: Running on ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-11, windows-2019]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+      - name: Building
+        run: go build -v ./...
+      - name: Testing
+        run: go test -v -count=1 ./...
