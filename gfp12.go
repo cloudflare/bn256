@@ -158,6 +158,45 @@ func (c *gfP12) Exp(a *gfP12, power *big.Int) *gfP12 {
 	return c
 }
 
+func (e *gfP12) SpecialPowV(a *gfP12) *gfP12 {
+	t0, t1, t2 := &gfP12{}, &gfP12{}, &gfP12{}
+
+	t0.SpecialSquare(a)
+	t0.SpecialSquare(t0)
+	t0.SpecialSquare(t0) // t0 = a ^ 8
+	t1.SpecialSquare(t0)
+	t1.SpecialSquare(t1)
+	t1.SpecialSquare(t1) // t1 = a ^ 64
+	t2.Conjugate(t0)     // t2 = a ^ -8
+	t2.Mul(t2, a)        // t2 = a ^ -7
+	t2.Mul(t2, t1)       // t2 = a ^ 57
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2) // t2 = a ^ (2^7 * 57) = a ^ 7296
+	t2.Mul(t2, a)        // t2 = a ^ 7297
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2)
+	t2.SpecialSquare(t2) // t2 = a ^ (7297 * 256) = a ^ 1868032
+	e.Mul(t2, a)
+	return e
+}
+
+func (e *gfP12) SpecialPowU(a *gfP12) *gfP12 {
+	e.SpecialPowV(a)
+	e.SpecialPowV(e)
+	e.SpecialPowV(e)
+	return e
+}
+
 func (e *gfP12) Square(a *gfP12) *gfP12 {
 	// Complex squaring algorithm
 	v0 := (&gfP6{}).Mul(&a.x, &a.y)
@@ -172,6 +211,80 @@ func (e *gfP12) Square(a *gfP12) *gfP12 {
 	e.x.Add(v0, v0)
 	e.y.Set(ty)
 	return e
+}
+
+// Special squaring loop for use on elements in T_6(gfP2) (after the
+// easy part of the final exponentiation. Used in the hard part
+// of the final exponentiation. Function uses formulas in
+// Granger/Scott (PKC2010).
+func (e *gfP12) SpecialSquare(a *gfP12) *gfP12 {
+	tmp := &gfP12{}
+
+	f02 := &tmp.y.x
+	f01 := &tmp.y.y
+	f00 := &tmp.y.z
+	f12 := &tmp.x.x
+	f11 := &tmp.x.y
+	f10 := &tmp.x.z
+
+	t00, t01, t02, t10, t11, t12 := &gfP2{}, &gfP2{}, &gfP2{}, &gfP2{}, &gfP2{}, &gfP2{}
+
+	gfP4Square(t11, t00, &a.x.y, &a.y.z)
+	gfP4Square(t12, t01, &a.y.x, &a.x.z)
+	gfP4Square(t02, t10, &a.x.x, &a.y.y)
+
+	f00.MulXi(t02)
+	t02.Set(t10)
+	t10.Set(f00)
+
+	f00.Add(t00, t00)
+	t00.Add(f00, t00)
+	f00.Add(t01, t01)
+	t01.Add(f00, t01)
+	f00.Add(t02, t02)
+	t02.Add(f00, t02)
+	f00.Add(t10, t10)
+	t10.Add(f00, t10)
+	f00.Add(t11, t11)
+	t11.Add(f00, t11)
+	f00.Add(t12, t12)
+	t12.Add(f00, t12)
+
+	f00.Add(&a.y.z, &a.y.z)
+	f00.Neg(f00)
+	f01.Add(&a.y.y, &a.y.y)
+	f01.Neg(f01)
+	f02.Add(&a.y.x, &a.y.x)
+	f02.Neg(f02)
+	f10.Add(&a.x.z, &a.x.z)
+	f11.Add(&a.x.y, &a.x.y)
+	f12.Add(&a.x.x, &a.x.x)
+
+	f00.Add(f00, t00)
+	f01.Add(f01, t01)
+	f02.Add(f02, t02)
+	f10.Add(f10, t10)
+	f11.Add(f11, t11)
+	f12.Add(f12, t12)
+
+	return e.Set(tmp)
+}
+
+// Implicit gfP4 squaring for Granger/Scott special squaring in final expo
+// gfP4Square takes two gfP2 x, y representing the gfP4 element.
+func gfP4Square(retX, retY, x, y *gfP2) {
+	t1, t2 := &gfP2{}, &gfP2{}
+
+	t1.Square(x)
+	t2.Square(y)
+
+	retX.Add(x, y)
+	retX.Square(retX)
+	retX.Sub(retX, t1)
+	retX.Sub(retX, t2) // retX = 2xy
+
+	retY.MulXi(t1)
+	retY.Add(retY, t2) // retY = x^2*xi + y^2
 }
 
 func (e *gfP12) Invert(a *gfP12) *gfP12 {

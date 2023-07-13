@@ -224,9 +224,9 @@ func finalExponentiation(in *gfP12) *gfP12 {
 	fp2 := (&gfP12{}).FrobeniusP2(t1)
 	fp3 := (&gfP12{}).Frobenius(fp2)
 
-	fu := (&gfP12{}).Exp(t1, u)
-	fu2 := (&gfP12{}).Exp(fu, u)
-	fu3 := (&gfP12{}).Exp(fu2, u)
+	fu := (&gfP12{}).SpecialPowU(t1)
+	fu2 := (&gfP12{}).SpecialPowU(fu)
+	fu3 := (&gfP12{}).SpecialPowU(fu2)
 
 	y3 := (&gfP12{}).Frobenius(fu)
 	fu2p := (&gfP12{}).Frobenius(fu2)
@@ -245,14 +245,14 @@ func finalExponentiation(in *gfP12) *gfP12 {
 	y6 := (&gfP12{}).Mul(fu3, fu3p)
 	y6.Conjugate(y6)
 
-	t0 := (&gfP12{}).Square(y6)
+	t0 := (&gfP12{}).SpecialSquare(y6)
 	t0.Mul(t0, y4).Mul(t0, y5)
 	t1.Mul(y3, y5).Mul(t1, t0)
 	t0.Mul(t0, y2)
-	t1.Square(t1).Mul(t1, t0).Square(t1)
+	t1.SpecialSquare(t1).Mul(t1, t0).SpecialSquare(t1)
 	t0.Mul(t1, y1)
 	t1.Mul(t1, y0)
-	t0.Square(t0).Mul(t0, t1)
+	t0.SpecialSquare(t0).Mul(t0, t1)
 
 	return t0
 }
