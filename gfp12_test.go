@@ -5,13 +5,14 @@ import (
 	"testing"
 )
 
-func TestGfP12SpecialSquare(t *testing.T) {
+func TestGfP12SquareCyclo6(t *testing.T) {
+	// in MUST be an element of the 6-th cyclotomic group.
 	in := gfP12Gen
 
 	got := &gfP12{}
 	expected := &gfP12{}
 
-	got.SpecialSquare(in)
+	got.SquareCyclo6(in)
 	expected.Square(in)
 
 	if *got != *expected {
@@ -19,13 +20,14 @@ func TestGfP12SpecialSquare(t *testing.T) {
 	}
 }
 
-func TestGfp12SpecialPowV(t *testing.T) {
+func TestGfp12PowToVCyclo6(t *testing.T) {
+	// in MUST be an element of the 6-th cyclotomic group.
 	in := gfP12Gen
 
 	got := &gfP12{}
 	expected := &gfP12{}
 
-	got.SpecialPowV(in)
+	got.powToVCyclo6(in)
 	expected.Exp(in, big.NewInt(1868033))
 
 	if *got != *expected {
@@ -33,13 +35,14 @@ func TestGfp12SpecialPowV(t *testing.T) {
 	}
 }
 
-func TestGfp12SpecialPowU(t *testing.T) {
+func TestGfp12PowToUCyclo6(t *testing.T) {
+	// in MUST be an element of the 6-th cyclotomic group.
 	in := gfP12Gen
 
 	got := &gfP12{}
 	expected := &gfP12{}
 
-	got.SpecialPowU(in)
+	got.PowToUCyclo6(in)
 	expected.Exp(in, u)
 
 	if *got != *expected {
@@ -56,12 +59,12 @@ func BenchmarkGfp12Square(b *testing.B) {
 	}
 }
 
-func BenchmarkGfp12SpecialSquare(b *testing.B) {
+func BenchmarkGfp12SquareCyclo6(b *testing.B) {
 	got := &gfP12{}
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		got.SpecialSquare(gfP12Gen)
+		got.SquareCyclo6(gfP12Gen)
 	}
 }
 
@@ -74,11 +77,11 @@ func BenchmarkGfp12ExpU(b *testing.B) {
 	}
 }
 
-func BenchmarkGfp12SpecialPowU(b *testing.B) {
+func BenchmarkGfp12PowToUCyclo6(b *testing.B) {
 	got := &gfP12{}
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		got.SpecialPowU(gfP12Gen)
+		got.PowToUCyclo6(gfP12Gen)
 	}
 }

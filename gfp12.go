@@ -158,42 +158,42 @@ func (c *gfP12) Exp(a *gfP12, power *big.Int) *gfP12 {
 	return c
 }
 
-func (e *gfP12) SpecialPowV(a *gfP12) *gfP12 {
+func (e *gfP12) powToVCyclo6(a *gfP12) *gfP12 {
 	t0, t1, t2 := &gfP12{}, &gfP12{}, &gfP12{}
 
-	t0.SpecialSquare(a)
-	t0.SpecialSquare(t0)
-	t0.SpecialSquare(t0) // t0 = a ^ 8
-	t1.SpecialSquare(t0)
-	t1.SpecialSquare(t1)
-	t1.SpecialSquare(t1) // t1 = a ^ 64
+	t0.SquareCyclo6(a)
+	t0.SquareCyclo6(t0)
+	t0.SquareCyclo6(t0) // t0 = a ^ 8
+	t1.SquareCyclo6(t0)
+	t1.SquareCyclo6(t1)
+	t1.SquareCyclo6(t1) // t1 = a ^ 64
 	t2.Conjugate(t0)     // t2 = a ^ -8
 	t2.Mul(t2, a)        // t2 = a ^ -7
 	t2.Mul(t2, t1)       // t2 = a ^ 57
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2) // t2 = a ^ (2^7 * 57) = a ^ 7296
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2) // t2 = a ^ (2^7 * 57) = a ^ 7296
 	t2.Mul(t2, a)        // t2 = a ^ 7297
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2)
-	t2.SpecialSquare(t2) // t2 = a ^ (7297 * 256) = a ^ 1868032
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2)
+	t2.SquareCyclo6(t2) // t2 = a ^ (7297 * 256) = a ^ 1868032
 	e.Mul(t2, a)
 	return e
 }
 
-func (e *gfP12) SpecialPowU(a *gfP12) *gfP12 {
-	e.SpecialPowV(a)
-	e.SpecialPowV(e)
-	e.SpecialPowV(e)
+func (e *gfP12) PowToUCyclo6(a *gfP12) *gfP12 {
+	e.powToVCyclo6(a)
+	e.powToVCyclo6(e)
+	e.powToVCyclo6(e)
 	return e
 }
 
@@ -213,11 +213,9 @@ func (e *gfP12) Square(a *gfP12) *gfP12 {
 	return e
 }
 
-// Special squaring loop for use on elements in T_6(gfP2) (after the
-// easy part of the final exponentiation. Used in the hard part
-// of the final exponentiation. Function uses formulas in
 // Granger/Scott (PKC2010).
-func (e *gfP12) SpecialSquare(a *gfP12) *gfP12 {
+// https://link.springer.com/chapter/10.1007/978-3-642-13013-7_13
+func (e *gfP12) SquareCyclo6(a *gfP12) *gfP12 {
 	tmp := &gfP12{}
 
 	f02 := &tmp.y.x
@@ -271,7 +269,8 @@ func (e *gfP12) SpecialSquare(a *gfP12) *gfP12 {
 }
 
 // Implicit gfP4 squaring for Granger/Scott special squaring in final expo
-// gfP4Square takes two gfP2 x, y representing the gfP4 element.
+// gfP4Square takes two gfP2 x, y representing the gfP4 element xu+y, where
+// u²=ξ.
 func gfP4Square(retX, retY, x, y *gfP2) {
 	t1, t2 := &gfP2{}, &gfP2{}
 
