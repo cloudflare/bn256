@@ -158,18 +158,23 @@ func (c *gfP12) Exp(a *gfP12, power *big.Int) *gfP12 {
 	return c
 }
 
+// "New software speed records for cryptographic pairings"
+// Section 3.3, Final exponentiation - 
+// Algorithm 2 Exponentiation by v = 1868033.
+// https://cryptojedi.org/papers/dclxvi-20100714.pdf
 func (e *gfP12) powToVCyclo6(a *gfP12) *gfP12 {
+	// The sequence of 21 special squarings and 4 multiplications
 	t0, t1, t2 := &gfP12{}, &gfP12{}, &gfP12{}
-
+	
 	t0.SquareCyclo6(a)
 	t0.SquareCyclo6(t0)
 	t0.SquareCyclo6(t0) // t0 = a ^ 8
 	t1.SquareCyclo6(t0)
 	t1.SquareCyclo6(t1)
 	t1.SquareCyclo6(t1) // t1 = a ^ 64
-	t2.Conjugate(t0)     // t2 = a ^ -8
-	t2.Mul(t2, a)        // t2 = a ^ -7
-	t2.Mul(t2, t1)       // t2 = a ^ 57
+	t2.Conjugate(t0)    // t2 = a ^ -8
+	t2.Mul(t2, a)       // t2 = a ^ -7
+	t2.Mul(t2, t1)      // t2 = a ^ 57
 	t2.SquareCyclo6(t2)
 	t2.SquareCyclo6(t2)
 	t2.SquareCyclo6(t2)
@@ -177,7 +182,7 @@ func (e *gfP12) powToVCyclo6(a *gfP12) *gfP12 {
 	t2.SquareCyclo6(t2)
 	t2.SquareCyclo6(t2)
 	t2.SquareCyclo6(t2) // t2 = a ^ (2^7 * 57) = a ^ 7296
-	t2.Mul(t2, a)        // t2 = a ^ 7297
+	t2.Mul(t2, a)       // t2 = a ^ 7297
 	t2.SquareCyclo6(t2)
 	t2.SquareCyclo6(t2)
 	t2.SquareCyclo6(t2)
@@ -190,6 +195,8 @@ func (e *gfP12) powToVCyclo6(a *gfP12) *gfP12 {
 	return e
 }
 
+// PowToUCyclo6 is used in final exponentiation after easy part(a ^ ((p^2 + 1)(p^6-1))).
+// Due to  u = v^3, so a^u can be implemented as three [powToVCyclo6].
 func (e *gfP12) PowToUCyclo6(a *gfP12) *gfP12 {
 	e.powToVCyclo6(a)
 	e.powToVCyclo6(e)
@@ -213,9 +220,24 @@ func (e *gfP12) Square(a *gfP12) *gfP12 {
 	return e
 }
 
-// Granger/Scott (PKC2010).
-// https://link.springer.com/chapter/10.1007/978-3-642-13013-7_13
+// SquareCyclo6 is used in final exponentiation after easy part(a ^ ((p^2 + 1)(p^6-1))).
+// Note that after the easy part of the final exponentiation, 
+// the resulting element lies in cyclotomic subgroup. 
+// "New software speed records for cryptographic pairings"
+// Section 3.3, Final exponentiation
+// https://cryptojedi.org/papers/dclxvi-20100714.pdf
+// The fomula reference:
+// Granger/Scott (PKC2010). 
+// Section 3.2
+// https://eprint.iacr.org/2009/565.pdf
 func (e *gfP12) SquareCyclo6(a *gfP12) *gfP12 {
+	// f = xω + y = (h2τ² + h1τ + h0)ω + (g2τ² + g1τ + g0) = h2ω^5 + g2ω^4 + h1 ω^3 + g1ω² + h0ω + g0
+	// we can also represets f as a cubic over a quadartic extension:
+	// Fp4[s]=Fp2[s]/(s^2-ξ), Fp12[t]=Fp4[t]/(t^3-s), s^2=ξ, t^3=s then
+	// f = ct² + bt + a = (c0 + c1s)t² + (b0 + b1s)t + (a0 + a1s) = c1t^5 + b1t^4 + a1t^3 + c0t^2 + b0t + a0
+	// both extensions are based on Fp2, so we got t^6 = ω^6 = ξ, and 
+	// a0 = g0, a1 = h1, b0 = h0, b1 = g2, c0 = g1, c1 = h2
+	// g0 = a.y.z, h1 = a.x.y, h0 = a.x.z, g2 = a.y.x, g1 = a.y.y, h2 = a.x.x
 	tmp := &gfP12{}
 
 	f02 := &tmp.y.x
@@ -227,14 +249,19 @@ func (e *gfP12) SquareCyclo6(a *gfP12) *gfP12 {
 
 	t00, t01, t02, t10, t11, t12 := &gfP2{}, &gfP2{}, &gfP2{}, &gfP2{}, &gfP2{}, &gfP2{}
 
-	gfP4Square(t11, t00, &a.x.y, &a.y.z)
-	gfP4Square(t12, t01, &a.y.x, &a.x.z)
-	gfP4Square(t02, t10, &a.x.x, &a.y.y)
+	gfP4Square(t11, t00, &a.x.y, &a.y.z) // (t00 + t11s) = (a0 + a1s)^2 = a²
+	gfP4Square(t12, t01, &a.y.x, &a.x.z) // (t01 + t12s) = (b0 + b1s)^2 = b²
+	gfP4Square(t02, t10, &a.x.x, &a.y.y) // (t10 + t02s) = (c0 + c1s)^2 = c²
 
+	// t02 + t10s = (t10 + t02s)s
 	f00.MulXi(t02)
 	t02.Set(t10)
 	t10.Set(f00)
 
+	// triples
+	// (t00 + t11s) = 3a²
+	// (t01 + t12s) = 3b²
+	// (t02 + t10s) = 3c²s
 	f00.Add(t00, t00)
 	t00.Add(f00, t00)
 	f00.Add(t01, t01)
@@ -248,6 +275,9 @@ func (e *gfP12) SquareCyclo6(a *gfP12) *gfP12 {
 	f00.Add(t12, t12)
 	t12.Add(f00, t12)
 
+	// (f00 + f11s) = -2Conjugate(a0 + a1s) = -2Conjugate(a)
+	// (f01 + f12s) = -2Conjugate(c0 + c1s) = -2Conjugate(c)
+	// (f02 + f10s) = 2Conjugate(b0 + b1s) = 2Conjugate(b)
 	f00.Add(&a.y.z, &a.y.z)
 	f00.Neg(f00)
 	f01.Add(&a.y.y, &a.y.y)
@@ -258,6 +288,9 @@ func (e *gfP12) SquareCyclo6(a *gfP12) *gfP12 {
 	f11.Add(&a.x.y, &a.x.y)
 	f12.Add(&a.x.x, &a.x.x)
 
+	// A = (f00 + f11s) = 3a² - 2Conjugate(a)
+	// C = (f01 + f12s) = 3b² - 2Conjugate(c)
+	// B = (f02 + f10s) = 3c² + 2Conjugate(b)
 	f00.Add(f00, t00)
 	f01.Add(f01, t01)
 	f02.Add(f02, t02)
