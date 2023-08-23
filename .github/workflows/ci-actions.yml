@@ -9,10 +9,10 @@ on:
 jobs:
   amd64_job:
     name: Go-${{matrix.GOVER}}/amd64
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        GOVER: ['1.18', '1.17', '1.16']
+        GOVER: ['1.21', '1.20']
     steps:
       - name: Setup Go-${{ matrix.GOVER }}
         uses: actions/setup-go@v3
@@ -26,10 +26,10 @@ jobs:
         run: go test -v -count=1 ./...
   arm64_job:
     name: Go-${{matrix.CFG[2]}}/${{matrix.CFG[0]}}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        CFG: [[arm64, arm64v8, 1.18]]
+        CFG: [[arm64, arm64v8, 1.21]]
     steps:
       - uses: actions/checkout@v3
       - name: Enabling Docker Experimental
@@ -56,7 +56,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: '1.21'
       - name: Building
         run: go build -v ./...
       - name: Testing
