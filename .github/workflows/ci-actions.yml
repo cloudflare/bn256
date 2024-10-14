@@ -14,12 +14,12 @@ jobs:
       matrix:
         GOVER: ['1.21', '1.20']
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Setup Go-${{ matrix.GOVER }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.GOVER }}
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: Building
         run: go build -v ./...
       - name: Testing
@@ -31,7 +31,7 @@ jobs:
       matrix:
         CFG: [[arm64, arm64v8, 1.21]]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Enabling Docker Experimental
         run: |
           echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
@@ -49,12 +49,12 @@ jobs:
     name: Running on ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-11, windows-2019]
+        os: [macos-latest, windows-latest]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - name: Building
