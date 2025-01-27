@@ -217,15 +217,15 @@ func finalExponentiation(in *gfP12) *gfP12 {
 	t1.Mul(t1, inv)
 
 	t2 := (&gfP12{}).FrobeniusP2(t1)
-	t1.Mul(t1, t2)
+	t1.Mul(t1, t2) 	// t1 = in^(p^6-1)(p^2+1), where t1 becomes an element of the 6-th cyclotomic group.
 
 	fp := (&gfP12{}).Frobenius(t1)
 	fp2 := (&gfP12{}).FrobeniusP2(t1)
 	fp3 := (&gfP12{}).Frobenius(fp2)
 
-	fu := (&gfP12{}).Exp(t1, u)
-	fu2 := (&gfP12{}).Exp(fu, u)
-	fu3 := (&gfP12{}).Exp(fu2, u)
+	fu := (&gfP12{}).PowToUCyclo6(t1)
+	fu2 := (&gfP12{}).PowToUCyclo6(fu)
+	fu3 := (&gfP12{}).PowToUCyclo6(fu2)
 
 	y3 := (&gfP12{}).Frobenius(fu)
 	fu2p := (&gfP12{}).Frobenius(fu2)
@@ -244,14 +244,14 @@ func finalExponentiation(in *gfP12) *gfP12 {
 	y6 := (&gfP12{}).Mul(fu3, fu3p)
 	y6.Conjugate(y6)
 
-	t0 := (&gfP12{}).Square(y6)
+	t0 := (&gfP12{}).SquareCyclo6(y6)
 	t0.Mul(t0, y4).Mul(t0, y5)
 	t1.Mul(y3, y5).Mul(t1, t0)
 	t0.Mul(t0, y2)
-	t1.Square(t1).Mul(t1, t0).Square(t1)
+	t1.SquareCyclo6(t1).Mul(t1, t0).SquareCyclo6(t1)
 	t0.Mul(t1, y1)
 	t1.Mul(t1, y0)
-	t0.Square(t0).Mul(t0, t1)
+	t0.SquareCyclo6(t0).Mul(t0, t1)
 
 	return t0
 }
