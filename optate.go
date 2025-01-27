@@ -208,6 +208,7 @@ func miller(q *twistPoint, p *curvePoint) *gfP12 {
 func finalExponentiation(in *gfP12) *gfP12 {
 	t1 := &gfP12{}
 
+	// Easy part
 	// This is the p^6-Frobenius
 	t1.x.Neg(&in.x)
 	t1.y.Set(&in.y)
@@ -219,41 +220,45 @@ func finalExponentiation(in *gfP12) *gfP12 {
 	t2 := (&gfP12{}).FrobeniusP2(t1)
 	t1.Mul(t1, t2)
 
-	fp := (&gfP12{}).Frobenius(t1)
-	fp2 := (&gfP12{}).FrobeniusP2(t1)
-	fp3 := (&gfP12{}).Frobenius(fp2)
+	// Hard Part
+	// Follows Fuentes et al. algorithm (https://link.springer.com/content/pdf/10.1007/978-3-642-28496-0_25.pdf)
+	// for computing the hard part based on the fact that f ^ d' is also a pairing and can be computed atleast as efficiently as f ^ d
+	// where d' is a multiple of d and d = Φk(p)/r = (p4 − p2 + 1)/r
 
-	fu := (&gfP12{}).Exp(t1, u)
-	fu2 := (&gfP12{}).Exp(fu, u)
-	fu3 := (&gfP12{}).Exp(fu2, u)
+	// see algorithm 6 from https://eprint.iacr.org/2015/192.pdf
+	y0 := (&gfP12{}).Exp(t1, u)
+	y0.Conjugate(y0)
+	y0.Square(y0)
+	y1 := (&gfP12{}).Square(y0)
+	y1.Mul(y0, y1)
+	y2 := (&gfP12{}).Exp(y1, u)
+	y2.Conjugate(y2) // f ^ 6u²
 
-	y3 := (&gfP12{}).Frobenius(fu)
-	fu2p := (&gfP12{}).Frobenius(fu2)
-	fu3p := (&gfP12{}).Frobenius(fu3)
-	y2 := (&gfP12{}).FrobeniusP2(fu2)
-
-	y0 := &gfP12{}
-	y0.Mul(fp, fp2).Mul(y0, fp3)
-
-	y1 := (&gfP12{}).Conjugate(t1)
-	y5 := (&gfP12{}).Conjugate(fu2)
-	y3.Conjugate(y3)
-	y4 := (&gfP12{}).Mul(fu, fu2p)
+	y3 := (&gfP12{}).Conjugate(y1)
+	y1.Mul(y2, y3)
+	y3.Square(y2)
+	y4 := (&gfP12{}).Exp(y3, u)
 	y4.Conjugate(y4)
+	y4.Conjugate(y4)
+	y4.Mul(y4, y1) // f ^ (6u + 6u² + 12u²) = f ^ a₂
 
-	y6 := (&gfP12{}).Mul(fu3, fu3p)
-	y6.Conjugate(y6)
+	y3.Mul(y4, y0) // f ^ 4u * f ^ 6u² * f ^ 12u³ = f ^ a₁
 
-	t0 := (&gfP12{}).Square(y6)
-	t0.Mul(t0, y4).Mul(t0, y5)
-	t1.Mul(y3, y5).Mul(t1, t0)
-	t0.Mul(t0, y2)
-	t1.Square(t1).Mul(t1, t0).Square(t1)
-	t0.Mul(t1, y1)
-	t1.Mul(t1, y0)
-	t0.Square(t0).Mul(t0, t1)
+	y0.Mul(y2, y4)
+	y0.Mul(y0, t1) // a * f ^ 6u² * f = f ^ a₀
 
-	return t0
+	y2.Frobenius(y3)
+	y0.Mul(y2, y0)
+	y2.FrobeniusP2(y4)
+	y0.Mul(y2, y0)
+	y2.Conjugate(t1)
+	y2.Mul(y2, y3) // f ^ -1 * f ^ 4u * f ^ 6u² * f ^ 12u³ = f^a₃
+
+	y2.FrobeniusP2(y2)
+	y2.Frobenius(y2)
+	y0.Mul(y2, y0) // f ^ s * (p⁴ - p² + 1 ) / r
+
+	return y0
 }
 
 func optimalAte(a *twistPoint, b *curvePoint) *gfP12 {
