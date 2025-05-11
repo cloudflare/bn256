@@ -16,9 +16,9 @@
 	UMULH R2, R5, R26 \
 	MUL R2, R6, R0 \
 	ADDS R0, R26 \
-	UMULH R2, R6, R27 \
+	UMULH R2, R6, c6 \
 	MUL R2, R7, R0 \
-	ADCS R0, R27 \
+	ADCS R0, c6 \
 	UMULH R2, R7, c7 \
 	MUL R2, R8, R0 \
 	ADCS R0, c7 \
@@ -26,7 +26,7 @@
 	ADCS ZR, c5 \
 	ADDS R1, c1 \
 	ADCS R26, c2 \
-	ADCS R27, c3 \
+	ADCS c6, c3 \
 	ADCS c7, c4 \
 	ADCS  ZR, c5 \
 	\
