@@ -19,15 +19,15 @@
 	UMULH R2, R6, R27 \
 	MUL R2, R7, R0 \
 	ADCS R0, R27 \
-	UMULH R2, R7, R29 \
+	UMULH R2, R7, c7 \
 	MUL R2, R8, R0 \
-	ADCS R0, R29 \
+	ADCS R0, c7 \
 	UMULH R2, R8, c5 \
 	ADCS ZR, c5 \
 	ADDS R1, c1 \
 	ADCS R26, c2 \
 	ADCS R27, c3 \
-	ADCS R29, c4 \
+	ADCS c7, c4 \
 	ADCS  ZR, c5 \
 	\
 	MUL R3, R5, R1 \
@@ -37,15 +37,15 @@
 	UMULH R3, R6, R27 \
 	MUL R3, R7, R0 \
 	ADCS R0, R27 \
-	UMULH R3, R7, R29 \
+	UMULH R3, R7, c7 \
 	MUL R3, R8, R0 \
-	ADCS R0, R29 \
+	ADCS R0, c7 \
 	UMULH R3, R8, c6 \
 	ADCS ZR, c6 \
 	ADDS R1, c2 \
 	ADCS R26, c3 \
 	ADCS R27, c4 \
-	ADCS R29, c5 \
+	ADCS c7, c5 \
 	ADCS  ZR, c6 \
 	\
 	MUL R4, R5, R1 \
