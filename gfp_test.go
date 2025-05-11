@@ -3,8 +3,11 @@ package bn256
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math/big"
+	"runtime"
+	"sync"
 	"testing"
 )
 
@@ -110,6 +113,33 @@ func TestGFp(t *testing.T) {
 				t.Errorf("got: %v want:%v", got, want)
 			}
 		}
+	})
+
+	t.Run("mul_fp_corruption", func(t *testing.T) {
+		// By enabling the mutex profiling, the go runtime will traverse the
+		// stack to measure mutex operations when a mutex is unlocked when a
+		// goroutine is blocking on it.
+		runtime.SetMutexProfileFraction(1)
+
+		var wg sync.WaitGroup
+		wg.Add(testTimes)
+		for i := 0; i < testTimes; i++ {
+			// If multiple goroutines interact with a global sync pool, the
+			// goroutines may block on acquiring a lock. When that happens, the
+			// mutex profiler will traverse the stack.
+			go func() {
+				defer wg.Done()
+
+				a := togfP(randomGF(rand.Reader))
+				b := togfP(randomGF(rand.Reader))
+				c := &gfP{}
+				gfpMul(c, a, b)
+
+				// Print ends up interacting with a global sync pool.
+				fmt.Print("")
+			}()
+		}
+		wg.Wait()
 	})
 
 	t.Run("neg", func(t *testing.T) {
