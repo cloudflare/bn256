@@ -55,15 +55,15 @@
 	UMULH R4, R6, R27 \
 	MUL R4, R7, R0 \
 	ADCS R0, R27 \
-	UMULH R4, R7, R29 \
+	UMULH R4, R7, R6 \
 	MUL R4, R8, R0 \
-	ADCS R0, R29 \
+	ADCS R0, R6 \
 	UMULH R4, R8, c7 \
 	ADCS ZR, c7 \
 	ADDS R1, c3 \
 	ADCS R26, c4 \
 	ADCS R27, c5 \
-	ADCS R29, c6 \
+	ADCS R6, c6 \
 	ADCS  ZR, c7
 
 #define gfpReduce() \
@@ -121,6 +121,7 @@
 	ADCS R16, R24 \
 	ADCS  ZR, R0 \
 	\
+	MOVD ·p2+8(SB), R6 \ // Restore R6
 	\ // Our output is R21:R22:R23:R24. Reduce mod p if necessary.
 	SUBS R5, R21, R10 \
 	SBCS R6, R22, R11 \
