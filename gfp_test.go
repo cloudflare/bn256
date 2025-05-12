@@ -3,12 +3,12 @@ package bn256
 import (
 	"crypto/rand"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"math/big"
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 )
 
 // randomGF returns a random integer between 0 and p-1.
@@ -121,12 +121,12 @@ func TestGFp(t *testing.T) {
 		// goroutine is blocking on it.
 		runtime.SetMutexProfileFraction(1)
 
-		var wg sync.WaitGroup
+		var (
+			lock sync.Mutex
+			wg   sync.WaitGroup
+		)
 		wg.Add(testTimes)
 		for i := 0; i < testTimes; i++ {
-			// If multiple goroutines interact with a global sync pool, the
-			// goroutines may block on acquiring a lock. When that happens, the
-			// mutex profiler will traverse the stack.
 			go func() {
 				defer wg.Done()
 
@@ -135,8 +135,13 @@ func TestGFp(t *testing.T) {
 				c := &gfP{}
 				gfpMul(c, a, b)
 
-				// Print ends up interacting with a global sync pool.
-				fmt.Print("")
+				lock.Lock()
+				// Make it more likely for goroutines to block on this mutex.
+				time.Sleep(time.Microsecond)
+
+				// If the frame pointer was corrupted, and another goroutine is
+				// blocked on this mutex, then this will segfault.
+				lock.Unlock()
 			}()
 		}
 		wg.Wait()
