@@ -105,7 +105,7 @@ TEXT ·gfpMul(SB),0,$0-24
 	MOVD b+16(FP), R0
 	loadBlock(0(R0), R5,R6,R7,R8)
 
-	mul(R9,R10,R11,R12,R13,R14,R15,R16)
+	mul(R9,R10,R11,R12,R13,R14,R15,R16,R17,EMPTY)
 	gfpReduce()
 
 	MOVD c+0(FP), R0

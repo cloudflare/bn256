@@ -1,4 +1,9 @@
-#define mul(c0,c1,c2,c3,c4,c5,c6,c7) \
+#define EMPTY
+
+#define RELOAD \
+	MOVD ·p2+0(SB), R5
+
+#define mul(c0,c1,c2,c3,c4,c5,c6,c7,t0,reset) \
 	MUL R1, R5, c0 \
 	UMULH R1, R5, c1 \
 	MUL R1, R6, R0 \
@@ -34,9 +39,9 @@
 	UMULH R3, R5, R26 \
 	MUL R3, R6, R0 \
 	ADDS R0, R26 \
-	UMULH R3, R6, R27 \
+	UMULH R3, R6, t0 \
 	MUL R3, R7, R0 \
-	ADCS R0, R27 \
+	ADCS R0, t0 \
 	UMULH R3, R7, c7 \
 	MUL R3, R8, R0 \
 	ADCS R0, c7 \
@@ -44,9 +49,11 @@
 	ADCS ZR, c6 \
 	ADDS R1, c2 \
 	ADCS R26, c3 \
-	ADCS R27, c4 \
+	ADCS t0, c4 \
 	ADCS c7, c5 \
 	ADCS  ZR, c6 \
+	\
+	reset \
 	\
 	MUL R4, R5, R1 \
 	UMULH R4, R5, R26 \
@@ -107,7 +114,7 @@
 	\
 	\ // m * N
 	loadModulus(R5,R6,R7,R8) \
-	mul(R17,R25,R19,R20,R21,R22,R23,R24) \
+	mul(R17,R25,R19,R20,R21,R22,R23,R24,R5,RELOAD) \
 	\
 	\ // Add the 512-bit intermediate to m*N
 	MOVD  ZR, R0 \
