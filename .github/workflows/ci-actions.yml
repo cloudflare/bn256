@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        GOVER: ['1.21', '1.20']
+        GOVER: ['1.24', '1.23']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,25 +25,22 @@ jobs:
       - name: Testing
         run: go test -v -count=1 ./...
   arm64_job:
-    name: Go-${{matrix.CFG[2]}}/${{matrix.CFG[0]}}
-    runs-on: ubuntu-22.04
+    name: Go-${{matrix.GOVER}}/arm64
+    needs: [amd64_job]
+    runs-on: ubuntu-24.04-arm
     strategy:
       matrix:
-        CFG: [[arm64, arm64v8, 1.21]]
+        GOVER: ['1.24', '1.23']
     steps:
       - uses: actions/checkout@v4
-      - name: Enabling Docker Experimental
-        run: |
-          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
-          sudo service docker restart
-      - name: Pulling Images
-        run: |
-          docker pull -q multiarch/qemu-user-static
-          docker pull -q --platform linux/${{matrix.CFG[0]}} ${{matrix.CFG[1]}}/golang:${{matrix.CFG[2]}}
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      - name: Setup Go-${{ matrix.GOVER }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.GOVER }}
+      - name: Building
+        run: go build -v ./...
       - name: Testing
-        run: |
-          docker run --rm -v `pwd`:`pwd` -w `pwd` ${{matrix.CFG[1]}}/golang:${{matrix.CFG[2]}} go test -v ./...
+        run: go test -v -count=1 ./...
   osCompat:
     runs-on: ${{ matrix.os }}
     name: Running on ${{ matrix.os }}
@@ -56,7 +53,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.24'
       - name: Building
         run: go build -v ./...
       - name: Testing
