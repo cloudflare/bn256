@@ -5,8 +5,6 @@ import (
 
 	"bytes"
 	"crypto/rand"
-
-	"golang.org/x/crypto/bn256"
 )
 
 func TestG1(t *testing.T) {
@@ -16,7 +14,7 @@ func TestG1(t *testing.T) {
 	}
 	ma := Ga.Marshal()
 
-	Gb := new(bn256.G1).ScalarBaseMult(k)
+	Gb := new(G1).ScalarBaseMult(k)
 	mb := Gb.Marshal()
 
 	if !bytes.Equal(ma, mb) {
@@ -50,9 +48,8 @@ func TestG2(t *testing.T) {
 	}
 	ma := Ga.Marshal()
 
-	Gb := new(bn256.G2).ScalarBaseMult(k)
+	Gb := new(G2).ScalarBaseMult(k)
 	mb := Gb.Marshal()
-	mb = append([]byte{0x01}, mb...)
 
 	if !bytes.Equal(ma, mb) {
 		t.Fatal("bytes are different")
@@ -85,12 +82,13 @@ func TestGT(t *testing.T) {
 	}
 	ma := Ga.Marshal()
 
-	Gb, ok := new(bn256.GT).Unmarshal((&GT{gfP12Gen}).Marshal())
-	if !ok {
+	G := new(GT)
+	_, err = G.Unmarshal((&GT{gfP12Gen}).Marshal())
+	if err != nil {
 		t.Fatal("unmarshal not ok")
 	}
-	Gb.ScalarMult(Gb, k)
-	mb := Gb.Marshal()
+	G.ScalarMult(G, k)
+	mb := G.Marshal()
 
 	if !bytes.Equal(ma, mb) {
 		t.Fatal("bytes are different")
