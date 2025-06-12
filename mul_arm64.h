@@ -1,3 +1,7 @@
+// mul multiplies two 256-bit numbers in little-endian order.
+// The inputs are (R1,R2,R3,R4) times (R5,R6,R7,R8)
+// and the product is stored in (c0,c1,c2,c3,c4,c5,c6,c7).
+// Note that the input registers (R1,R2,R3) are overwritten.
 #define mul(c0,c1,c2,c3,c4,c5,c6,c7) \
 	MUL R1, R5, c0 \
 	UMULH R1, R5, c1 \
