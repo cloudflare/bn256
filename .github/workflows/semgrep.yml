@@ -1,16 +1,19 @@
 on:
   pull_request: {}
   workflow_dispatch: {}
-  push: 
+  push:
     branches:
       - master
   schedule:
     - cron: '0 0 * * *'
+permissions:
+  contents: read
 name: Semgrep
 jobs:
   semgrep:
     name: semgrep/ci
     runs-on: ubuntu-latest
+    if: github.repository == 'cloudflare/bn256'
     env:
       SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
       SEMGREP_URL: https://cloudflare.semgrep.dev
